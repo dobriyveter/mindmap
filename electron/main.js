@@ -2,8 +2,16 @@ const { app, BrowserWindow, Menu, dialog, ipcMain, shell } = require('electron')
 const path = require('path');
 const isDev = !app.isPackaged;
 
+// Решаем проблему ICU data
+app.commandLine.appendSwitch('lang', 'en-US');
+
 // Отключаем аппаратное ускорение для стабильности на всех ПК
 app.disableHardwareAcceleration();
+
+// Устанавливаем правильную рабочую директорию
+if (isDev) {
+  app.setPath('userData', path.join(app.getPath('appData'), 'MindFlow-dev'));
+}
 
 let mainWindow;
 
