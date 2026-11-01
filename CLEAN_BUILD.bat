@@ -21,15 +21,15 @@ timeout /t 2 /nobreak >nul
 echo   [OK] Done
 echo.
 
-echo   [3/5] Deleting old release folder...
-if exist "release" (
-    rmdir /s /q release >nul 2>&1
+echo   [3/5] Deleting old build folder...
+if exist "build" (
+    rmdir /s /q build >nul 2>&1
     timeout /t 3 /nobreak >nul
 )
-if exist "release" (
+if exist "build" (
     echo   [WARN] Could not delete, trying again...
     timeout /t 5 /nobreak >nul
-    rmdir /s /q release >nul 2>&1
+    rmdir /s /q build >nul 2>&1
 )
 echo   [OK] Done
 echo.
@@ -65,7 +65,7 @@ if %errorlevel% neq 0 (
     echo   BUILD SUCCESSFUL!
     echo ========================================================
     echo.
-    echo   Installer: D:\MindFlow\release\
+    echo   Installer: D:\MindFlow\build\
     echo.
 )
 

@@ -102,10 +102,10 @@ REM Close Explorer windows that might lock files
 taskkill /f /im explorer.exe >nul 2>&1
 timeout /t 1 /nobreak >nul
 
-REM Clean release folder to avoid EBUSY errors
-if exist "release" (
+REM Clean build folder to avoid EBUSY errors
+if exist "build" (
     echo   Cleaning old build files...
-    rmdir /s /q release 2>nul
+    rmdir /s /q build 2>nul
     timeout /t 3 /nobreak >nul
 )
 
@@ -135,7 +135,7 @@ echo   BUILD SUCCESSFUL!
 echo ========================================================
 echo.
 echo   Installer location:
-echo     %cd%\release\
+echo     %cd%\build\
 echo.
 echo   Find file:
 echo     MindFlow-Setup-1.0.0.exe
