@@ -36,8 +36,8 @@ const Sidebar: React.FC = () => {
     if (!selectedNode) return;
     const childX = selectedNode.x + selectedNode.width + 50;
     const childY = selectedNode.y;
-    const childId = addNode(childX, childY, selectedNode.id);
-    useMindMapStore.getState().addConnection(selectedNode.id, childId);
+    // addNode с parentId автоматически создаёт визуальную связь
+    addNode(childX, childY, selectedNode.id);
   };
 
   const handleAddWebLink = () => {

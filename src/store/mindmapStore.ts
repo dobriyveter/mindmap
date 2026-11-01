@@ -109,6 +109,8 @@ const useMindMapStore = create<MindMapStore>((set, get) => ({
     
     set(state => {
       const nodes = [...state.nodes, newNode];
+      let connections = [...state.connections];
+      
       if (parentId) {
         const parentIndex = nodes.findIndex(n => n.id === parentId);
         if (parentIndex !== -1) {
@@ -117,8 +119,20 @@ const useMindMapStore = create<MindMapStore>((set, get) => ({
             children: [...nodes[parentIndex].children, id]
           };
         }
+        // Автоматически создаём визуальную связь между родителем и дочерним узлом
+        const connectionExists = connections.some(
+          c => c.fromNodeId === parentId && c.toNodeId === id
+        );
+        if (!connectionExists) {
+          connections.push({
+            id: uuidv4(),
+            fromNodeId: parentId,
+            toNodeId: id,
+            style: 'solid',
+          });
+        }
       }
-      return { nodes, selectedNodeId: id, isDirty: true };
+      return { nodes, connections, selectedNodeId: id, isDirty: true };
     });
     
     get().saveToHistory();

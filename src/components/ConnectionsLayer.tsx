@@ -186,8 +186,28 @@ const ConnectionsLayer: React.FC<Props> = ({ nodes, connections }) => {
     return depth;
   };
 
+  // Calculate SVG bounds to cover all nodes
+  let svgMinX = -500, svgMinY = -500, svgMaxX = 3000, svgMaxY = 3000;
+  if (nodes.length > 0) {
+    svgMinX = Math.min(...nodes.map(n => n.x)) - 500;
+    svgMinY = Math.min(...nodes.map(n => n.y)) - 500;
+    svgMaxX = Math.max(...nodes.map(n => n.x + n.width)) + 500;
+    svgMaxY = Math.max(...nodes.map(n => n.y + n.height)) + 500;
+  }
+  const svgWidth = svgMaxX - svgMinX;
+  const svgHeight = svgMaxY - svgMinY;
+
   return (
-    <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ overflow: 'visible' }}>
+    <svg
+      className="absolute pointer-events-none"
+      style={{
+        left: svgMinX,
+        top: svgMinY,
+        width: svgWidth,
+        height: svgHeight,
+        overflow: 'visible',
+      }}
+    >
       <defs>
         {/* Gradient definitions for each connection */}
         {connections.map(conn => {

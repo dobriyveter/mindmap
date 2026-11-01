@@ -139,7 +139,7 @@ const MindMapNodeComponent: React.FC<Props> = ({ node, isSelected, onMouseDown }
             )}
           </div>
           
-          {/* Status indicators */}
+          {/* Status indicators + add child button */}
           <div className="flex items-center gap-0.5 flex-shrink-0 ml-1">
             {node.links.length > 0 && (
               <span className="text-xs opacity-70" title={`${node.links.length} ссылок`}>🔗</span>
@@ -152,6 +152,21 @@ const MindMapNodeComponent: React.FC<Props> = ({ node, isSelected, onMouseDown }
               <span className="text-[10px] opacity-70" title={`Чеклист: ${completedChecklist}/${totalChecklist}`}>
                 ☑️{completedChecklist}/{totalChecklist}
               </span>
+            )}
+            {/* Add child button - visible on hover when selected */}
+            {isSelected && viewMode.mode === 'edit' && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const childX = node.x + node.width + 40;
+                  const childY = node.y;
+                  useMindMapStore.getState().addNode(childX, childY, node.id);
+                }}
+                className="w-5 h-5 flex items-center justify-center rounded-full bg-green-500 text-white text-xs hover:bg-green-600 shadow-sm transition-all hover:scale-110"
+                title="Добавить дочерний узел"
+              >
+                +
+              </button>
             )}
           </div>
         </div>

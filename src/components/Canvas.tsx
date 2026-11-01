@@ -103,6 +103,10 @@ const Canvas: React.FC = () => {
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't handle shortcuts when editing text
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) return;
+
       if (e.key === 'Delete' && selectedNodeId) {
         useMindMapStore.getState().deleteNode(selectedNodeId);
       }
@@ -118,10 +122,30 @@ const Canvas: React.FC = () => {
         e.preventDefault();
         useMindMapStore.getState().duplicateNode(selectedNodeId);
       }
+      // Tab — create child node
+      if (e.key === 'Tab' && selectedNodeId) {
+        e.preventDefault();
+        const node = nodes.find(n => n.id === selectedNodeId);
+        if (node) {
+          const childX = node.x + node.width + 40;
+          const childY = node.y;
+          useMindMapStore.getState().addNode(childX, childY, selectedNodeId);
+        }
+      }
+      // Enter — create sibling node (same parent)
+      if (e.key === 'Enter' && selectedNodeId) {
+        e.preventDefault();
+        const node = nodes.find(n => n.id === selectedNodeId);
+        if (node) {
+          const siblingX = node.x;
+          const siblingY = node.y + node.height + 20;
+          useMindMapStore.getState().addNode(siblingX, siblingY, node.parentId);
+        }
+      }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedNodeId]);
+  }, [selectedNodeId, nodes]);
 
   // Auto-save every 30 seconds
   useEffect(() => {

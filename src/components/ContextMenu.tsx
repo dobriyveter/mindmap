@@ -38,8 +38,8 @@ const ContextMenu: React.FC<Props> = ({ x, y, nodeId, onClose }) => {
       action: () => {
         const childX = node.x + node.width + 50;
         const childY = node.y;
-        const childId = addNode(childX, childY, nodeId);
-        addConnection(nodeId, childId);
+        // addNode с parentId автоматически создаёт визуальную связь
+        addNode(childX, childY, nodeId);
         onClose();
       },
     },
