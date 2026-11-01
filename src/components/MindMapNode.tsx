@@ -10,7 +10,7 @@ interface Props {
 }
 
 const MindMapNodeComponent: React.FC<Props> = ({ node, isSelected: isSelectedProp, onMouseDown }) => {
-  const { selectedNodeIds, updateNode, toggleCollapse, viewMode, obsidianVaultPath } = useMindMapStore();
+  const { selectedNodeIds, updateNode, toggleCollapse, viewMode, obsidianVaultPath, nodes } = useMindMapStore();
   const isSelected = isSelectedProp || selectedNodeIds.includes(node.id);
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(node.text);
@@ -77,6 +77,7 @@ const MindMapNodeComponent: React.FC<Props> = ({ node, isSelected: isSelectedPro
 
   return (
     <div
+      data-node-id={node.id}
       className={`absolute group select-none node-enter`}
       style={{
         left: node.x,
@@ -156,22 +157,21 @@ const MindMapNodeComponent: React.FC<Props> = ({ node, isSelected: isSelectedPro
                 ☑️{completedChecklist}/{totalChecklist}
               </span>
             )}
-            {/* Add child button - visible on hover when selected */}
-            {isSelected && viewMode.mode === 'edit' && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  const childX = node.x + node.width + 40;
-                  const childY = node.y;
-                  useMindMapStore.getState().addNode(childX, childY, node.id);
-                }}
-                className="w-5 h-5 flex items-center justify-center rounded-full bg-green-500 text-white text-xs hover:bg-green-600 shadow-sm transition-all hover:scale-110"
-                title="Добавить дочерний узел"
-              >
-                +
-              </button>
-            )}
-          </div>
+      {/* Add child button - visible on hover when selected */}
+      {isSelected && viewMode.mode === 'edit' && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            const childX = node.x + node.width + 40;
+            const childY = node.y;
+            useMindMapStore.getState().addNode(childX, childY, node.id);
+          }}
+          className="w-5 h-5 flex items-center justify-center rounded-full bg-green-500 text-white text-xs hover:bg-green-600 shadow-sm transition-all hover:scale-110"
+          title="Добавить дочерний узел"
+        >
+          +
+        </button>
+      )}          </div>
         </div>
 
         {/* Image preview */}

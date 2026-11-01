@@ -51,6 +51,18 @@ const Toolbar: React.FC = () => {
         {store.isDirty && <span className="text-orange-500 text-xs">●</span>}
       </div>
 
+      {/* Add node button */}
+      <button
+        onClick={() => {
+          console.log('🎯 Создаём узел через кнопку');
+          store.addNode(400 + Math.random() * 100, 300 + Math.random() * 100);
+        }}
+        className="p-2 rounded hover:bg-gray-100 text-gray-600"
+        title="Добавить узел"
+      >
+        ➕
+      </button>
+
       <div className="h-6 w-px bg-gray-200 mx-2" />
 
       {/* Undo/Redo */}

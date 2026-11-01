@@ -61,13 +61,19 @@ const Canvas: React.FC = () => {
   }, [dragNode]);
 
   const handleDoubleClick = useCallback((e: React.MouseEvent) => {
-    if (e.target === canvasRef.current || (e.target as HTMLElement).classList.contains('canvas-bg')) {
-      const rect = canvasRef.current?.getBoundingClientRect();
-      if (rect) {
-        const x = (e.clientX - rect.left - panX) / zoom;
-        const y = (e.clientY - rect.top - panY) / zoom;
-        addNode(x, y);
-      }
+    // Проверяем что клик не на узле
+    const target = e.target as HTMLElement;
+    if (target.closest('[data-node-id]')) {
+      console.log('⚠️ Клик на узле, не создаём новый');
+      return;
+    }
+    
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (rect) {
+      const x = (e.clientX - rect.left - panX) / zoom;
+      const y = (e.clientY - rect.top - panY) / zoom;
+      console.log('✅ Создаём узел в координатах:', { x, y });
+      addNode(x, y);
     }
   }, [panX, panY, zoom, addNode]);
 
@@ -255,6 +261,23 @@ const Canvas: React.FC = () => {
       {selectedNodeId && viewMode.mode === 'edit' && (
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-gray-800/70 text-white px-3 py-1.5 rounded-lg text-xs pointer-events-none">
           💡 <kbd className="bg-white/20 px-1 rounded">Ctrl+клик</kbd> по узлам — выделить несколько для связи
+        </div>
+      )}
+
+      {/* First node hint */}
+      {nodes.length === 0 && viewMode.mode === 'edit' && (
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
+          <div className="bg-white/90 rounded-xl shadow-lg p-6 max-w-md">
+            <div className="text-4xl mb-3">🧠</div>
+            <h2 className="text-xl font-bold text-gray-800 mb-2">Добро пожаловать в MindFlow!</h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Начните создавать ментальную карту
+            </p>
+            <div className="space-y-2 text-left text-sm text-gray-700">
+              <p>💡 <strong>Двойной клик</strong> на пустом месте — создать узел</p>
+              <p>💡 Или нажмите кнопку <strong>➕</strong> в тулбаре</p>
+            </div>
+          </div>
         </div>
       )}
 
