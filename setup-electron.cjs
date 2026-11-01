@@ -28,6 +28,18 @@ packageJson.description = 'Mind mapping application';
 packageJson.main = 'electron/main.js';
 packageJson.author = 'MindFlow';
 
+// Move electron packages from dependencies to devDependencies
+const electronPackages = ['electron', 'electron-builder', 'electron-is-dev', 'concurrently', 'wait-on'];
+if (!packageJson.devDependencies) packageJson.devDependencies = {};
+
+for (const pkg of electronPackages) {
+  if (packageJson.dependencies && packageJson.dependencies[pkg]) {
+    packageJson.devDependencies[pkg] = packageJson.dependencies[pkg];
+    delete packageJson.dependencies[pkg];
+    console.log(`   [OK] Moved ${pkg} to devDependencies`);
+  }
+}
+
 // Add electron scripts
 packageJson.scripts = {
   ...packageJson.scripts,
@@ -35,6 +47,17 @@ packageJson.scripts = {
   'electron:build': 'npm run build && electron-builder --win --config electron-builder.yml',
   'electron:build-portable': 'npm run build && electron-builder --win portable --config electron-builder.yml',
 };
+
+// Ensure electron packages are in devDependencies
+if (!packageJson.devDependencies) packageJson.devDependencies = {};
+const electronPackages = ['electron', 'electron-builder', 'electron-is-dev', 'concurrently', 'wait-on'];
+for (const pkg of electronPackages) {
+  if (packageJson.dependencies && packageJson.dependencies[pkg]) {
+    packageJson.devDependencies[pkg] = packageJson.dependencies[pkg];
+    delete packageJson.dependencies[pkg];
+    console.log(`   [OK] Moved ${pkg} to devDependencies`);
+  }
+}
 
 // Save
 fs.writeFileSync(packagePath, JSON.stringify(packageJson, null, 2), 'utf8');
