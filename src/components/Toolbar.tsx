@@ -169,19 +169,29 @@ const Toolbar: React.FC = () => {
         ⚙️
       </button>
 
-      {/* Connect mode */}
-      <button
-        onClick={() => {
-          if (store.selectedNodeId) {
-            store.setConnectingFrom(store.selectedNodeId);
-          }
-        }}
-        className={`p-2 rounded text-sm ${store.connectingFrom ? 'bg-green-100 text-green-700' : 'hover:bg-gray-100 text-gray-600'}`}
-        title={store.connectingFrom ? 'Кликните на целевой узел' : 'Создать связь (выделите узел)'}
-        disabled={!store.selectedNodeId}
-      >
-        🔗
-      </button>
+      {/* Connect mode - для связи между любыми узлами */}
+      {store.selectedNodeIds.length >= 2 ? (
+        <button
+          onClick={() => store.connectSelectedNodes()}
+          className="p-2 rounded text-sm bg-green-100 text-green-700 hover:bg-green-200 animate-pulse"
+          title={`Создать связь между ${store.selectedNodeIds.length} узлами`}
+        >
+          🔗 Связать ({store.selectedNodeIds.length})
+        </button>
+      ) : (
+        <button
+          onClick={() => {
+            if (store.selectedNodeId) {
+              store.setConnectingFrom(store.selectedNodeId);
+            }
+          }}
+          className={`p-2 rounded text-sm ${store.connectingFrom ? 'bg-green-100 text-green-700' : 'hover:bg-gray-100 text-gray-600'}`}
+          title={store.connectingFrom ? 'Кликните на целевой узел' : 'Создать связь (выделите узел)'}
+          disabled={!store.selectedNodeId}
+        >
+          🔗
+        </button>
+      )}
 
       {/* Status */}
       {store.lastSaved && (

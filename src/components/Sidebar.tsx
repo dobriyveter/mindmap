@@ -81,13 +81,23 @@ const Sidebar: React.FC = () => {
           <p className="text-xs text-blue-700 font-medium mb-2">💡 Управление:</p>
           <ul className="text-xs text-blue-600 space-y-1.5">
             <li>• <kbd className="bg-white px-1 rounded border text-[10px]">Двойной клик</kbd> на пустом месте — новый узел</li>
-            <li>• <kbd className="bg-white px-1 rounded border text-[10px]">Двойной клик</kbd> на узле — редактировать текст</li>
+            <li>• <kbd className="bg-white px-1 rounded border text-[10px]">Двойной клик</kbd> на узле — редактировать</li>
+            <li>• <kbd className="bg-white px-1 rounded border text-[10px]">Tab</kbd> — дочерний узел (со стрелкой)</li>
+            <li>• <kbd className="bg-white px-1 rounded border text-[10px]">Enter</kbd> — соседний узел</li>
+            <li>• <kbd className="bg-white px-1 rounded border text-[10px]">Ctrl+клик</kbd> — выделить 2+ узла → связать</li>
             <li>• <kbd className="bg-white px-1 rounded border text-[10px]">ПКМ</kbd> на узле — контекстное меню</li>
-            <li>• <kbd className="bg-white px-1 rounded border text-[10px]">Delete</kbd> — удалить узел</li>
+            <li>• <kbd className="bg-white px-1 rounded border text-[10px]">Delete</kbd> — удалить</li>
             <li>• <kbd className="bg-white px-1 rounded border text-[10px]">Ctrl+Z/Y</kbd> — отмена/повтор</li>
-            <li>• <kbd className="bg-white px-1 rounded border text-[10px]">Ctrl+D</kbd> — дублировать</li>
             <li>• <kbd className="bg-white px-1 rounded border text-[10px]">Колёсико</kbd> — масштаб</li>
-            <li>• Перетаскивание пустого места — перемещение</li>
+          </ul>
+        </div>
+        
+        <div className="p-3 bg-green-50 rounded-lg mb-3">
+          <p className="text-xs text-green-700 font-medium mb-2">🔗 Создание связей:</p>
+          <ul className="text-xs text-green-600 space-y-1">
+            <li>• <strong>Родитель→Ребёнок:</strong> Tab или кнопка «+» — стрелка создаётся автоматически</li>
+            <li>• <strong>Между любыми узлами:</strong> Ctrl+клик по 2+ узлам → кнопка «Связать»</li>
+            <li>• <strong>Вручную:</strong> выделите узел → кнопка 🔗 → кликните на другой узел</li>
           </ul>
         </div>
         <div className="p-3 bg-purple-50 rounded-lg">

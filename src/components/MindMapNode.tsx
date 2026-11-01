@@ -9,11 +9,12 @@ interface Props {
   onMouseDown: (e: React.MouseEvent) => void;
 }
 
-const MindMapNodeComponent: React.FC<Props> = ({ node, isSelected, onMouseDown }) => {
+const MindMapNodeComponent: React.FC<Props> = ({ node, isSelected: isSelectedProp, onMouseDown }) => {
+  const { selectedNodeIds, updateNode, toggleCollapse, viewMode, obsidianVaultPath } = useMindMapStore();
+  const isSelected = isSelectedProp || selectedNodeIds.includes(node.id);
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(node.text);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const { updateNode, toggleCollapse, viewMode, obsidianVaultPath } = useMindMapStore();
 
   useEffect(() => {
     if (isEditing && textareaRef.current) {
@@ -91,7 +92,9 @@ const MindMapNodeComponent: React.FC<Props> = ({ node, isSelected, onMouseDown }
         className={`
           ${getShapeClasses()}
           border-2 transition-all duration-150
-          ${isSelected ? 'border-blue-500 shadow-lg shadow-blue-200/50 ring-2 ring-blue-300/50' : 'border-gray-200 hover:border-gray-400 hover:shadow-md'}
+          ${isSelected && selectedNodeIds.length > 1 ? 'border-purple-500 shadow-lg shadow-purple-200/50 ring-2 ring-purple-300/50' : 
+            isSelected ? 'border-blue-500 shadow-lg shadow-blue-200/50 ring-2 ring-blue-300/50' : 
+            'border-gray-200 hover:border-gray-400 hover:shadow-md'}
           ${viewMode.mode === 'presentation' ? 'border-gray-600' : ''}
           flex flex-col overflow-visible
         `}

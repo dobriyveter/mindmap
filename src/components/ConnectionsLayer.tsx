@@ -8,109 +8,7 @@ interface Props {
 }
 
 /**
- * Get the point on a cubic bezier curve at parameter t
- */
-function bezierPoint(
-  p0: { x: number; y: number },
-  p1: { x: number; y: number },
-  p2: { x: number; y: number },
-  p3: { x: number; y: number },
-  t: number
-): { x: number; y: number } {
-  const mt = 1 - t;
-  return {
-    x: mt * mt * mt * p0.x + 3 * mt * mt * t * p1.x + 3 * mt * t * t * p2.x + t * t * t * p3.x,
-    y: mt * mt * mt * p0.y + 3 * mt * mt * t * p1.y + 3 * mt * t * t * p2.y + t * t * t * p3.y,
-  };
-}
-
-/**
- * Get the tangent (derivative) of a cubic bezier at parameter t
- */
-function bezierTangent(
-  p0: { x: number; y: number },
-  p1: { x: number; y: number },
-  p2: { x: number; y: number },
-  p3: { x: number; y: number },
-  t: number
-): { x: number; y: number } {
-  const mt = 1 - t;
-  return {
-    x: 3 * mt * mt * (p1.x - p0.x) + 6 * mt * t * (p2.x - p1.x) + 3 * t * t * (p3.x - p2.x),
-    y: 3 * mt * mt * (p1.y - p0.y) + 6 * mt * t * (p2.y - p1.y) + 3 * t * t * (p3.y - p2.y),
-  };
-}
-
-/**
- * Generate a tapered path (filled shape) from parent to child.
- * The shape is thick at the parent side and thin at the child side.
- */
-function generateTaperedPath(
-  from: { x: number; y: number },
-  to: { x: number; y: number },
-  startWidth: number,
-  endWidth: number,
-  segments: number = 20
-): string {
-  // Control points for smooth bezier
-  const dx = to.x - from.x;
-  const dy = to.y - from.y;
-  const dist = Math.sqrt(dx * dx + dy * dy);
-  
-  // Adaptive control points based on direction
-  const cpOffset = Math.min(dist * 0.4, 150);
-  
-  const p0 = from;
-  const p1 = { x: from.x + cpOffset, y: from.y };
-  const p2 = { x: to.x - cpOffset, y: to.y };
-  const p3 = to;
-
-  // Build left and right edge points
-  const leftPoints: { x: number; y: number }[] = [];
-  const rightPoints: { x: number; y: number }[] = [];
-
-  for (let i = 0; i <= segments; i++) {
-    const t = i / segments;
-    const point = bezierPoint(p0, p1, p2, p3, t);
-    const tangent = bezierTangent(p0, p1, p2, p3, t);
-    
-    // Normalize tangent
-    const len = Math.sqrt(tangent.x * tangent.x + tangent.y * tangent.y);
-    if (len === 0) continue;
-    const nx = -tangent.y / len; // perpendicular
-    const ny = tangent.x / len;
-    
-    // Interpolate width with easing (smooth taper)
-    const easedT = t * t * (3 - 2 * t); // smoothstep
-    const currentWidth = startWidth + (endWidth - startWidth) * easedT;
-    const halfWidth = currentWidth / 2;
-    
-    leftPoints.push({ x: point.x + nx * halfWidth, y: point.y + ny * halfWidth });
-    rightPoints.push({ x: point.x - nx * halfWidth, y: point.y - ny * halfWidth });
-  }
-
-  // Build SVG path: go along left edge, then reverse along right edge
-  if (leftPoints.length < 2) return '';
-  
-  let d = `M ${leftPoints[0].x} ${leftPoints[0].y}`;
-  for (let i = 1; i < leftPoints.length; i++) {
-    d += ` L ${leftPoints[i].x} ${leftPoints[i].y}`;
-  }
-  // Arrow tip at the end
-  const tipX = to.x;
-  const tipY = to.y;
-  d += ` L ${tipX} ${tipY}`;
-  // Go back along right edge
-  for (let i = rightPoints.length - 1; i >= 0; i--) {
-    d += ` L ${rightPoints[i].x} ${rightPoints[i].y}`;
-  }
-  d += ' Z';
-  
-  return d;
-}
-
-/**
- * Get the edge point of a node where a connection should start/end
+ * Вычисляет точку на краю прямоугольника/эллипса узла в направлении к target
  */
 function getEdgePoint(
   node: MindMapNode,
@@ -123,37 +21,138 @@ function getEdgePoint(
   const dx = targetX - cx;
   const dy = targetY - cy;
   
-  if (dx === 0 && dy === 0) return { x: cx, y: cy };
+  if (Math.abs(dx) < 0.01 && Math.abs(dy) < 0.01) {
+    return { x: cx + node.width / 2, y: cy };
+  }
   
-  const angle = Math.atan2(dy, dx);
   const hw = node.width / 2;
   const hh = node.height / 2;
   
-  // Find intersection with rectangle edge
-  let ex: number, ey: number;
-  
   if (node.shape === 'ellipse') {
-    // Ellipse intersection
+    const angle = Math.atan2(dy, dx);
     const cos = Math.cos(angle);
     const sin = Math.sin(angle);
     const r = (hw * hh) / Math.sqrt(hh * hh * cos * cos + hw * hw * sin * sin);
-    ex = cx + r * cos;
-    ey = cy + r * sin;
-  } else {
-    // Rectangle intersection
-    const tanAngle = Math.abs(dy / (dx || 0.001));
-    if (tanAngle <= hh / hw) {
-      // Hits left or right edge
-      ex = cx + Math.sign(dx) * hw;
-      ey = cy + Math.sign(dx) * hw * (dy / (dx || 0.001));
-    } else {
-      // Hits top or bottom edge
-      ey = cy + Math.sign(dy) * hh;
-      ex = cx + Math.sign(dy) * hh * (dx / (dy || 0.001));
-    }
+    return { x: cx + r * cos, y: cy + r * sin };
   }
   
-  return { x: ex, y: ey };
+  // Rectangle/rounded — пересечение с краем прямоугольника
+  const absDx = Math.abs(dx);
+  const absDy = Math.abs(dy);
+  
+  let scale: number;
+  if (absDx * hh > absDy * hw) {
+    // Пересекает левый или правый край
+    scale = hw / absDx;
+  } else {
+    // Пересекает верхний или нижний край
+    scale = hh / absDy;
+  }
+  
+  return { x: cx + dx * scale, y: cy + dy * scale };
+}
+
+/**
+ * Генерирует tapered (сужающуюся) path от from к to.
+ * Толстый у начала, тонкий у конца, с наконечником-стрелкой.
+ */
+function generateTaperedArrow(
+  from: { x: number; y: number },
+  to: { x: number; y: number },
+  startWidth: number,
+  endWidth: number
+): { path: string; arrowPoints: string } {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const dist = Math.sqrt(dx * dx + dy * dy);
+  
+  if (dist < 1) return { path: '', arrowPoints: '' };
+  
+  // Направление
+  const nx = dx / dist; // нормализованный X
+  const ny = dy / dist; // нормализованный Y
+  // Перпендикуляр
+  const px = -ny;
+  const py = nx;
+  
+  // Контрольные точки для кривой Безье
+  const cpDist = Math.min(dist * 0.4, 120);
+  
+  // Определяем изгиб в зависимости от направления
+  let cp1x: number, cp1y: number, cp2x: number, cp2y: number;
+  
+  if (Math.abs(dx) > Math.abs(dy)) {
+    // Горизонтальное направление — изгиб по X
+    cp1x = from.x + Math.sign(dx) * cpDist;
+    cp1y = from.y;
+    cp2x = to.x - Math.sign(dx) * cpDist;
+    cp2y = to.y;
+  } else {
+    // Вертикальное направление — изгиб по Y
+    cp1x = from.x;
+    cp1y = from.y + Math.sign(dy) * cpDist;
+    cp2x = to.x;
+    cp2y = to.y - Math.sign(dy) * cpDist;
+  }
+  
+  // Генерируем точки вдоль кривой для tapered shape
+  const segments = 24;
+  const leftEdge: string[] = [];
+  const rightEdge: string[] = [];
+  
+  for (let i = 0; i <= segments; i++) {
+    const t = i / segments;
+    const mt = 1 - t;
+    
+    // Точка на кривой Безье
+    const bx = mt*mt*mt*from.x + 3*mt*mt*t*cp1x + 3*mt*t*t*cp2x + t*t*t*to.x;
+    const by = mt*mt*mt*from.y + 3*mt*mt*t*cp1y + 3*mt*t*t*cp2y + t*t*t*to.y;
+    
+    // Касательная (производная)
+    const tx = 3*mt*mt*(cp1x-from.x) + 6*mt*t*(cp2x-cp1x) + 3*t*t*(to.x-cp2x);
+    const ty = 3*mt*mt*(cp1y-from.y) + 6*mt*t*(cp2y-cp1y) + 3*t*t*(to.y-cp2y);
+    
+    const tLen = Math.sqrt(tx*tx + ty*ty);
+    if (tLen < 0.001) continue;
+    
+    // Перпендикуляр к касательной
+    const ppx = -ty / tLen;
+    const ppy = tx / tLen;
+    
+    // Плавное сужение (smoothstep)
+    const eased = t * t * (3 - 2 * t);
+    const w = startWidth + (endWidth - startWidth) * eased;
+    const halfW = w / 2;
+    
+    leftEdge.push(`${bx + ppx * halfW},${by + ppy * halfW}`);
+    rightEdge.push(`${bx - ppx * halfW},${by - ppy * halfW}`);
+  }
+  
+  if (leftEdge.length < 2) return { path: '', arrowPoints: '' };
+  
+  // Наконечник стрелки
+  const arrowLen = Math.max(endWidth * 3, 8);
+  const arrowWidth = Math.max(endWidth * 2, 5);
+  
+  // Направление на конце кривой
+  const endTx = 3*(to.x-cp2x);
+  const endTy = 3*(to.y-cp2y);
+  const endTLen = Math.sqrt(endTx*endTx + endTy*endTy);
+  const endNx = endTx / (endTLen || 1);
+  const endNy = endTy / (endTLen || 1);
+  const endPx = -endNy;
+  const endPy = endNx;
+  
+  const arrowTip = { x: to.x, y: to.y };
+  const arrowLeft = { x: to.x - endNx * arrowLen + endPx * arrowWidth, y: to.y - endNy * arrowLen + endPy * arrowWidth };
+  const arrowRight = { x: to.x - endNx * arrowLen - endPx * arrowWidth, y: to.y - endNy * arrowLen - endPy * arrowWidth };
+  
+  // Собираем path: левый край → наконечник → правый край (обратно)
+  const path = `M ${leftEdge[0]} L ${leftEdge.slice(1).join(' L ')} L ${arrowLeft.x},${arrowLeft.y} L ${arrowTip.x},${arrowTip.y} L ${arrowRight.x},${arrowRight.y} L ${rightEdge.slice().reverse().join(' L ')} Z`;
+  
+  const arrowPoints = `${arrowTip.x},${arrowTip.y} ${arrowLeft.x},${arrowLeft.y} ${arrowRight.x},${arrowRight.y}`;
+  
+  return { path, arrowPoints };
 }
 
 const ConnectionsLayer: React.FC<Props> = ({ nodes, connections }) => {
@@ -162,68 +161,32 @@ const ConnectionsLayer: React.FC<Props> = ({ nodes, connections }) => {
   const getNodeCenter = (nodeId: string) => {
     const node = nodes.find(n => n.id === nodeId);
     if (!node) return { x: 0, y: 0 };
-    return {
-      x: node.x + node.width / 2,
-      y: node.y + node.height / 2,
-    };
+    return { x: node.x + node.width / 2, y: node.y + node.height / 2 };
   };
 
-  // Calculate connection "depth" for width scaling
-  // Root connections are thicker, deeper ones are thinner
-  const getConnectionDepth = (conn: NodeConnection): number => {
-    const fromNode = nodes.find(n => n.id === conn.fromNodeId);
-    if (!fromNode) return 0;
-    
-    // Count how many ancestors the fromNode has
+  // Определяем глубину узла для расчёта толщины
+  const getNodeDepth = (nodeId: string): number => {
     let depth = 0;
-    let current = fromNode;
-    while (current.parentId) {
+    let current = nodes.find(n => n.id === nodeId);
+    while (current?.parentId) {
       depth++;
-      const parent = nodes.find(n => n.id === current.parentId);
-      if (!parent) break;
-      current = parent;
+      current = nodes.find(n => n.id === current!.parentId);
     }
     return depth;
   };
 
-  // Calculate SVG bounds to cover all nodes
-  let svgMinX = -500, svgMinY = -500, svgMaxX = 3000, svgMaxY = 3000;
-  if (nodes.length > 0) {
-    svgMinX = Math.min(...nodes.map(n => n.x)) - 500;
-    svgMinY = Math.min(...nodes.map(n => n.y)) - 500;
-    svgMaxX = Math.max(...nodes.map(n => n.x + n.width)) + 500;
-    svgMaxY = Math.max(...nodes.map(n => n.y + n.height)) + 500;
-  }
-  const svgWidth = svgMaxX - svgMinX;
-  const svgHeight = svgMaxY - svgMinY;
-
   return (
     <svg
-      className="absolute pointer-events-none"
       style={{
-        left: svgMinX,
-        top: svgMinY,
-        width: svgWidth,
-        height: svgHeight,
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        width: '100%',
+        height: '100%',
         overflow: 'visible',
+        pointerEvents: 'none',
       }}
     >
-      <defs>
-        {/* Gradient definitions for each connection */}
-        {connections.map(conn => {
-          const from = getNodeCenter(conn.fromNodeId);
-          const to = getNodeCenter(conn.toNodeId);
-          const id = `grad-${conn.id}`;
-          const color = conn.color || '#64748b';
-          return (
-            <linearGradient key={id} id={id} x1={from.x} y1={from.y} x2={to.x} y2={to.y} gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stopColor={color} stopOpacity="0.9" />
-              <stop offset="100%" stopColor={color} stopOpacity="0.5" />
-            </linearGradient>
-          );
-        })}
-      </defs>
-
       {connections.map(conn => {
         const fromNode = nodes.find(n => n.id === conn.fromNodeId);
         const toNode = nodes.find(n => n.id === conn.toNodeId);
@@ -232,77 +195,60 @@ const ConnectionsLayer: React.FC<Props> = ({ nodes, connections }) => {
         const fromCenter = getNodeCenter(conn.fromNodeId);
         const toCenter = getNodeCenter(conn.toNodeId);
         
-        // Get edge points
+        // Точки на краях узлов
         const from = getEdgePoint(fromNode, toCenter.x, toCenter.y);
         const to = getEdgePoint(toNode, fromCenter.x, fromCenter.y);
 
-        // Width based on depth (thicker for root connections)
-        const depth = getConnectionDepth(conn);
-        const baseStartWidth = Math.max(6 - depth * 1.2, 2);
-        const baseEndWidth = Math.max(1.5 - depth * 0.3, 0.5);
+        // Толщина зависит от глубины
+        const depth = getNodeDepth(conn.fromNodeId);
+        const startWidth = Math.max(8 - depth * 1.5, 2.5);
+        const endWidth = Math.max(2 - depth * 0.3, 0.8);
         
         const isSelected = conn.id === selectedConnectionId;
-        const startWidth = isSelected ? baseStartWidth * 1.5 : baseStartWidth;
-        const endWidth = isSelected ? baseEndWidth * 1.5 : baseEndWidth;
+        const sw = isSelected ? startWidth * 1.3 : startWidth;
+        const ew = isSelected ? endWidth * 1.3 : endWidth;
 
-        // Generate tapered path
-        const pathD = generateTaperedPath(from, to, startWidth, endWidth);
+        const { path, arrowPoints } = generateTaperedArrow(from, to, sw, ew);
         
-        // Arrow head at the end
-        const dx = to.x - from.x;
-        const dy = to.y - from.y;
-        const angle = Math.atan2(dy, dx);
-        const arrowSize = Math.max(endWidth * 3, 6);
-        const arrowP1 = {
-          x: to.x - arrowSize * Math.cos(angle - 0.4),
-          y: to.y - arrowSize * Math.sin(angle - 0.4),
-        };
-        const arrowP2 = {
-          x: to.x - arrowSize * Math.cos(angle + 0.4),
-          y: to.y - arrowSize * Math.sin(angle + 0.4),
-        };
+        const color = conn.color || '#64748b';
+        const selectedColor = '#3b82f6';
 
-        // Label position (midpoint of curve)
+        // Метка посередине
         const midX = (from.x + to.x) / 2;
-        const midY = (from.y + to.y) / 2 - 10;
+        const midY = (from.y + to.y) / 2;
 
         return (
-          <g key={conn.id} className="pointer-events-auto cursor-pointer"
+          <g key={conn.id} style={{ pointerEvents: 'auto', cursor: 'pointer' }}
             onClick={(e) => { e.stopPropagation(); selectConnection(conn.id); }}>
-            {/* Invisible wider path for easier clicking */}
-            <path
-              d={`M ${from.x} ${from.y} Q ${(from.x + to.x) / 2} ${(from.y + to.y) / 2}, ${to.x} ${to.y}`}
-              fill="none"
-              stroke="transparent"
-              strokeWidth="14"
+            
+            {/* Невидимая широкая область для клика */}
+            <line
+              x1={from.x} y1={from.y} x2={to.x} y2={to.y}
+              stroke="transparent" strokeWidth="16"
             />
-            {/* Tapered connection shape */}
-            {pathD && (
+            
+            {/* Tapered стрелка */}
+            {path && (
               <path
-                d={pathD}
-                fill={`url(#grad-${conn.id})`}
-                stroke={isSelected ? '#3b82f6' : 'none'}
+                d={path}
+                fill={isSelected ? selectedColor : color}
+                opacity={0.8}
+                stroke={isSelected ? selectedColor : 'none'}
                 strokeWidth={isSelected ? 1 : 0}
-                opacity={0.85}
               />
             )}
-            {/* Arrow head */}
-            <polygon
-              points={`${to.x},${to.y} ${arrowP1.x},${arrowP1.y} ${arrowP2.x},${arrowP2.y}`}
-              fill={conn.color || '#64748b'}
-              opacity={0.85}
-            />
-            {/* Label */}
+            
+            {/* Метка */}
             {conn.label && (
               <g>
                 <rect
-                  x={midX - conn.label.length * 3.5 - 4}
-                  y={midY - 8}
-                  width={conn.label.length * 7 + 8}
-                  height={16}
-                  rx="4"
+                  x={midX - conn.label.length * 3.5 - 6}
+                  y={midY - 10}
+                  width={conn.label.length * 7 + 12}
+                  height={18}
+                  rx="9"
                   fill="white"
-                  stroke="#e2e8f0"
+                  stroke={isSelected ? selectedColor : '#e2e8f0'}
                   strokeWidth="1"
                 />
                 <text
@@ -311,8 +257,8 @@ const ConnectionsLayer: React.FC<Props> = ({ nodes, connections }) => {
                   textAnchor="middle"
                   fontSize="11"
                   fill="#475569"
-                  className="pointer-events-none"
                   fontWeight="500"
+                  style={{ pointerEvents: 'none' }}
                 >
                   {conn.label}
                 </text>
@@ -322,12 +268,13 @@ const ConnectionsLayer: React.FC<Props> = ({ nodes, connections }) => {
         );
       })}
 
-      {/* Connecting mode line */}
+      {/* Индикатор режима создания связи */}
       {connectingFrom && (() => {
-        const from = getNodeCenter(connectingFrom);
+        const center = getNodeCenter(connectingFrom);
         return (
-          <circle cx={from.x} cy={from.y} r="8" fill="none" stroke="#3b82f6" strokeWidth="2" strokeDasharray="3,3">
-            <animate attributeName="r" values="8;12;8" dur="1.5s" repeatCount="indefinite" />
+          <circle cx={center.x} cy={center.y} r="10" fill="none" stroke="#3b82f6" strokeWidth="2.5" strokeDasharray="4,3">
+            <animate attributeName="r" values="10;14;10" dur="1.5s" repeatCount="indefinite" />
+            <animate attributeName="opacity" values="1;0.5;1" dur="1.5s" repeatCount="indefinite" />
           </circle>
         );
       })()}

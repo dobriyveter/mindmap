@@ -7,6 +7,7 @@ interface MindMapStore {
   nodes: MindMapNode[];
   connections: NodeConnection[];
   selectedNodeId: string | null;
+  selectedNodeIds: string[]; // множественное выделение
   selectedConnectionId: string | null;
   viewMode: ViewMode;
   zoom: number;
@@ -27,7 +28,7 @@ interface MindMapStore {
   addNode: (x: number, y: number, parentId?: string) => string;
   updateNode: (id: string, updates: Partial<MindMapNode>) => void;
   deleteNode: (id: string) => void;
-  selectNode: (id: string | null) => void;
+  selectNode: (id: string | null, multiSelect?: boolean) => void;
   selectConnection: (id: string | null) => void;
   addConnection: (fromId: string, toId: string, label?: string) => void;
   deleteConnection: (id: string) => void;
@@ -57,6 +58,8 @@ interface MindMapStore {
   removeWebLink: (nodeId: string, linkIndex: number) => void;
   toggleCollapse: (nodeId: string) => void;
   duplicateNode: (nodeId: string) => void;
+  connectSelectedNodes: () => void;
+  clearMultiSelect: () => void;
 }
 
 const createDefaultNode = (x: number, y: number, parentId?: string): MindMapNode => ({
@@ -86,6 +89,7 @@ const useMindMapStore = create<MindMapStore>((set, get) => ({
   nodes: [],
   connections: [],
   selectedNodeId: null,
+  selectedNodeIds: [],
   selectedConnectionId: null,
   viewMode: { mode: 'edit' },
   zoom: 1,
@@ -178,7 +182,22 @@ const useMindMapStore = create<MindMapStore>((set, get) => ({
     get().saveToHistory();
   },
 
-  selectNode: (id: string | null) => set({ selectedNodeId: id, selectedConnectionId: null }),
+  selectNode: (id: string | null, multiSelect: boolean = false) => {
+    if (id === null) {
+      set({ selectedNodeId: null, selectedNodeIds: [], selectedConnectionId: null });
+      return;
+    }
+    if (multiSelect) {
+      set(state => {
+        const ids = state.selectedNodeIds.includes(id)
+          ? state.selectedNodeIds.filter(i => i !== id)
+          : [...state.selectedNodeIds, id];
+        return { selectedNodeId: id, selectedNodeIds: ids, selectedConnectionId: null };
+      });
+    } else {
+      set({ selectedNodeId: id, selectedNodeIds: [id], selectedConnectionId: null });
+    }
+  },
   selectConnection: (id: string | null) => set({ selectedConnectionId: id, selectedNodeId: null }),
 
   addConnection: (fromId: string, toId: string, label?: string) => {
@@ -388,6 +407,39 @@ const useMindMapStore = create<MindMapStore>((set, get) => ({
       isDirty: true,
     }));
     get().saveToHistory();
+  },
+
+  connectSelectedNodes: () => {
+    const { selectedNodeIds } = get();
+    if (selectedNodeIds.length < 2) return;
+    
+    // Создаём связи между всеми выделенными узлами (последовательно)
+    set(state => {
+      const newConnections = [...state.connections];
+      for (let i = 0; i < selectedNodeIds.length - 1; i++) {
+        const fromId = selectedNodeIds[i];
+        const toId = selectedNodeIds[i + 1];
+        // Проверяем что связь ещё не существует
+        const exists = newConnections.some(
+          c => (c.fromNodeId === fromId && c.toNodeId === toId) ||
+               (c.fromNodeId === toId && c.toNodeId === fromId)
+        );
+        if (!exists) {
+          newConnections.push({
+            id: uuidv4(),
+            fromNodeId: fromId,
+            toNodeId: toId,
+            style: 'solid',
+          });
+        }
+      }
+      return { connections: newConnections, selectedNodeIds: [], isDirty: true };
+    });
+    get().saveToHistory();
+  },
+
+  clearMultiSelect: () => {
+    set({ selectedNodeIds: [] });
   },
 }));
 

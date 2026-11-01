@@ -33,7 +33,7 @@ const Canvas: React.FC = () => {
       if (e.button === 0) {
         setIsPanning(true);
         setPanStart({ x: e.clientX - panX, y: e.clientY - panY });
-        selectNode(null);
+        selectNode(null); // очищает и selectedNodeIds
       }
     }
   }, [panX, panY, selectNode, connectingFrom, setConnectingFrom]);
@@ -91,7 +91,7 @@ const Canvas: React.FC = () => {
       return;
     }
 
-    selectNode(nodeId);
+    selectNode(nodeId, e.ctrlKey || e.metaKey);
     const rect = canvasRef.current?.getBoundingClientRect();
     if (rect) {
       const offsetX = e.clientX - rect.left - panX - node.x * zoom;
@@ -246,6 +246,13 @@ const Canvas: React.FC = () => {
 
       {/* Mini Map */}
       <MiniMap />
+
+      {/* Multi-select hint */}
+      {selectedNodeId && viewMode.mode === 'edit' && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-gray-800/70 text-white px-3 py-1.5 rounded-lg text-xs pointer-events-none">
+          💡 <kbd className="bg-white/20 px-1 rounded">Ctrl+клик</kbd> по узлам — выделить несколько для связи
+        </div>
+      )}
 
       {/* Context Menu */}
       {contextMenu && (

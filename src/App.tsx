@@ -70,6 +70,25 @@ const App: React.FC = () => {
               🔗 Кликните на целевой узел для создания связи (или на пустое место для отмены)
             </div>
           )}
+
+          {/* Multi-select indicator */}
+          {useMindMapStore.getState().selectedNodeIds.length >= 2 && (
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg text-sm flex items-center gap-2">
+              <span>🔗 Выделено узлов: {useMindMapStore.getState().selectedNodeIds.length}</span>
+              <button
+                onClick={() => useMindMapStore.getState().connectSelectedNodes()}
+                className="px-2 py-0.5 bg-white text-blue-600 rounded text-xs font-medium hover:bg-blue-50"
+              >
+                Связать
+              </button>
+              <button
+                onClick={() => useMindMapStore.getState().clearMultiSelect()}
+                className="px-2 py-0.5 bg-white/20 rounded text-xs hover:bg-white/30"
+              >
+                ✕
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Sidebar - hidden in presentation/print mode */}

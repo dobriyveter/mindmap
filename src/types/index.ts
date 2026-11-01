@@ -60,6 +60,7 @@ export interface MindMapState {
   nodes: MindMapNode[];
   connections: NodeConnection[];
   selectedNodeId: string | null;
+  selectedNodeIds: string[]; // для множественного выделения
   selectedConnectionId: string | null;
   viewMode: ViewMode;
   zoom: number;
