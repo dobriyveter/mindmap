@@ -62,7 +62,7 @@ echo   [2/4] Setting up Electron...
 echo ========================================================
 echo.
 
-node setup-electron.js
+node setup-electron.cjs
 if %errorlevel% neq 0 (
     color 0C
     echo.

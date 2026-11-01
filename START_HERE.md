@@ -43,7 +43,7 @@ your-folder/
 |
 +-- BUILD_DESKTOP.bat      <-- DOUBLE-CLICK to build installer
 +-- RUN_DEV.bat            <-- DOUBLE-CLICK to test
-+-- setup-electron.js      <-- Automatic setup
++-- setup-electron.cjs     <-- Automatic setup
 |
 +-- electron/              <-- Electron files
 |   +-- main.js

@@ -32,7 +32,7 @@ if not exist "node_modules" (
 )
 
 REM Setup project
-node setup-electron.js
+node setup-electron.cjs
 
 echo.
 echo ========================================================
