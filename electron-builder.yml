@@ -18,21 +18,14 @@ win:
       arch:
         - x64
   artifactName: ${productName}-Setup-${version}.${ext}
-
-nsis:
-  oneClick: false
-  perMachine: false
-  allowToChangeInstallationDirectory: true
-  deleteAppDataOnUninstall: false
-  shortcutName: MindFlow
-  installerIcon: electron/icon.png
-  uninstallerIcon: electron/icon.png
-  installerHeaderIcon: electron/icon.png
-  createDesktopShortcut: true
-  createStartMenuShortcut: true
-  shortcutProperties:
-    - Name: MindFlow
-      Description: Приложение для создания ментальных карт
+  nsis:
+    oneClick: false
+    perMachine: false
+    allowToChangeInstallationDirectory: true
+    deleteAppDataOnUninstall: false
+    shortcutName: MindFlow
+    createDesktopShortcut: true
+    createStartMenuShortcut: true
 
 mac:
   target:
@@ -40,7 +33,6 @@ mac:
       arch:
         - x64
         - arm64
-  icon: electron/icon.png
   category: public.app-category.productivity
 
 linux:
@@ -48,7 +40,6 @@ linux:
     - target: AppImage
       arch:
         - x64
-  icon: electron/icon.png
   category: Office
 
 publish:
