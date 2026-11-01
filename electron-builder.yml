@@ -1,47 +1,14 @@
 appId: com.mindflow.app
 productName: MindFlow
-copyright: Copyright © 2026 MindFlow
+copyright: Copyright © 2026
 
 directories:
   output: release
-  buildResources: build
 
 files:
   - dist/**/*
   - electron/**/*
   - package.json
-  - node_modules/**/*
 
 win:
-  target:
-    - target: nsis
-      arch:
-        - x64
-  artifactName: ${productName}-Setup-${version}.${ext}
-  nsis:
-    oneClick: false
-    perMachine: false
-    allowToChangeInstallationDirectory: true
-    deleteAppDataOnUninstall: false
-    shortcutName: MindFlow
-    createDesktopShortcut: true
-    createStartMenuShortcut: true
-
-mac:
-  target:
-    - target: dmg
-      arch:
-        - x64
-        - arm64
-  category: public.app-category.productivity
-
-linux:
-  target:
-    - target: AppImage
-      arch:
-        - x64
-  category: Office
-
-publish:
-  provider: generic
-  url: ''
+  target: nsis
