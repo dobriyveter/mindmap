@@ -48,17 +48,6 @@ packageJson.scripts = {
   'electron:build-portable': 'npm run build && electron-builder --win portable --config electron-builder.yml',
 };
 
-// Ensure electron packages are in devDependencies
-if (!packageJson.devDependencies) packageJson.devDependencies = {};
-const electronPackages = ['electron', 'electron-builder', 'electron-is-dev', 'concurrently', 'wait-on'];
-for (const pkg of electronPackages) {
-  if (packageJson.dependencies && packageJson.dependencies[pkg]) {
-    packageJson.devDependencies[pkg] = packageJson.dependencies[pkg];
-    delete packageJson.dependencies[pkg];
-    console.log(`   [OK] Moved ${pkg} to devDependencies`);
-  }
-}
-
 // Save
 fs.writeFileSync(packagePath, JSON.stringify(packageJson, null, 2), 'utf8');
 console.log('   [OK] package.json updated');
