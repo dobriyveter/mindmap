@@ -21,12 +21,22 @@ try {
   process.exit(1);
 }
 
-// Add main field
-packageJson.name = 'mindflow';
-packageJson.version = '1.0.0';
-packageJson.description = 'Mind mapping application';
-packageJson.main = 'electron/main.js';
-packageJson.author = 'MindFlow';
+// Add main field (only if not already set)
+if (!packageJson.name || packageJson.name === 'sandbox-workspace') {
+  packageJson.name = 'mindflow';
+}
+if (!packageJson.version) {
+  packageJson.version = '1.0.0';
+}
+if (!packageJson.description) {
+  packageJson.description = 'Mind mapping application';
+}
+if (!packageJson.main) {
+  packageJson.main = 'electron/main.js';
+}
+if (!packageJson.author) {
+  packageJson.author = 'MindFlow';
+}
 
 // Move electron packages from dependencies to devDependencies
 const electronPackages = ['electron', 'electron-builder', 'electron-is-dev', 'concurrently', 'wait-on'];
