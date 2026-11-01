@@ -158,6 +158,9 @@ function generateTaperedArrow(
 const ConnectionsLayer: React.FC<Props> = ({ nodes, connections }) => {
   const { selectConnection, selectedConnectionId, connectingFrom } = useMindMapStore();
 
+  // Отладка
+  console.log('ConnectionsLayer:', { nodesCount: nodes.length, connectionsCount: connections.length, connections });
+
   const getNodeCenter = (nodeId: string) => {
     const node = nodes.find(n => n.id === nodeId);
     if (!node) return { x: 0, y: 0 };
@@ -177,14 +180,15 @@ const ConnectionsLayer: React.FC<Props> = ({ nodes, connections }) => {
 
   return (
     <svg
+      width="10000"
+      height="10000"
+      viewBox="0 0 10000 10000"
       style={{
         position: 'absolute',
         left: 0,
         top: 0,
-        width: '100%',
-        height: '100%',
-        overflow: 'visible',
         pointerEvents: 'none',
+        overflow: 'visible',
       }}
     >
       {connections.map(conn => {
@@ -198,6 +202,9 @@ const ConnectionsLayer: React.FC<Props> = ({ nodes, connections }) => {
         // Точки на краях узлов
         const from = getEdgePoint(fromNode, toCenter.x, toCenter.y);
         const to = getEdgePoint(toNode, fromCenter.x, fromCenter.y);
+
+        // Отладка
+        console.log('Drawing connection:', { from, to, fromNode: fromNode.id, toNode: toNode.id });
 
         // Толщина зависит от глубины
         const depth = getNodeDepth(conn.fromNodeId);
@@ -221,6 +228,12 @@ const ConnectionsLayer: React.FC<Props> = ({ nodes, connections }) => {
           <g key={conn.id} style={{ pointerEvents: 'auto', cursor: 'pointer' }}
             onClick={(e) => { e.stopPropagation(); selectConnection(conn.id); }}>
             
+            {/* Простая линия для отладки */}
+            <line
+              x1={from.x} y1={from.y} x2={to.x} y2={to.y}
+              stroke="orange" strokeWidth="3" opacity="0.8"
+            />
+            
             {/* Невидимая широкая область для клика */}
             <line
               x1={from.x} y1={from.y} x2={to.x} y2={to.y}
@@ -232,7 +245,7 @@ const ConnectionsLayer: React.FC<Props> = ({ nodes, connections }) => {
               <path
                 d={path}
                 fill={isSelected ? selectedColor : color}
-                opacity={0.8}
+                opacity={0.9}
                 stroke={isSelected ? selectedColor : 'none'}
                 strokeWidth={isSelected ? 1 : 0}
               />

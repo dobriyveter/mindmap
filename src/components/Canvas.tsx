@@ -219,8 +219,12 @@ const Canvas: React.FC = () => {
 
       {/* Transform container */}
       <div
-        className="absolute"
         style={{
+          position: 'absolute',
+          left: 0,
+          top: 0,
+          width: 10000,
+          height: 10000,
           transform: `translate(${panX}px, ${panY}px) scale(${zoom})`,
           transformOrigin: '0 0',
         }}
