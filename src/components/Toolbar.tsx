@@ -169,6 +169,22 @@ const Toolbar: React.FC = () => {
         ⚙️
       </button>
 
+      {/* ТЕСТ: Принудительно создать связь между первыми двумя узлами */}
+      {store.nodes.length >= 2 && (
+        <button
+          onClick={() => {
+            const node1 = store.nodes[0];
+            const node2 = store.nodes[1];
+            console.log('🧪 ТЕСТ: Создаём связь между', node1.id, 'и', node2.id);
+            store.addConnection(node1.id, node2.id, 'ТЕСТ');
+          }}
+          className="p-2 rounded text-sm bg-red-100 text-red-700 hover:bg-red-200"
+          title="ТЕСТ: Создать связь между первыми двумя узлами"
+        >
+          🧪 ТЕСТ
+        </button>
+      )}
+
       {/* Connect mode - для связи между любыми узлами */}
       {store.selectedNodeIds.length >= 2 ? (
         <button
