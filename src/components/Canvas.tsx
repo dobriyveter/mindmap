@@ -189,13 +189,6 @@ const Canvas: React.FC = () => {
 
   const visibleNodes = getVisibleNodes();
 
-  console.log('🎨 Canvas rendering:', {
-    nodesCount: visibleNodes.length,
-    connectionsCount: connections.length,
-    panX, panY, zoom,
-    nodes: visibleNodes.map(n => ({ id: n.id, x: n.x, y: n.y }))
-  });
-
   return (
     <div
       ref={canvasRef}
