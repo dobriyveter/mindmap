@@ -1,86 +1,86 @@
-# 🧠 MindFlow — Создание десктопного приложения
+# MindFlow - Desktop Application Setup
 
-## ⚡ САМЫЙ ПРОСТОЙ СПОСОБ (для новичков)
+## Quick Start (For Beginners)
 
-### Что нужно сделать:
+### What to do:
 
-**1.** Найдите в папке проекта файл:
-
-```
-📄 BUILD_DESKTOP.bat
-```
-
-**2.** Двойной клик на нём
-
-**3.** Дождитесь окончания (5-15 минут)
-
-**4.** Готово! В папке `release/` появится установщик:
+**1.** Find this file in the project folder:
 
 ```
-📦 MindFlow-Setup-1.0.0.exe
+BUILD_DESKTOP.bat
 ```
 
-**5.** Запустите его — приложение установится как обычная программа Windows!
+**2.** Double-click on it
+
+**3.** Wait 5-15 minutes
+
+**4.** Done! In the `release/` folder you'll find:
+
+```
+MindFlow-Setup-1.0.0.exe
+```
+
+**5.** Run it - the application will install like a regular Windows program!
 
 ---
 
-## 🎮 Хотите сначала протестировать?
+## Want to test first?
 
-Двойной клик на файле:
+Double-click on:
 
 ```
-📄 RUN_DEV.bat
+RUN_DEV.bat
 ```
 
-Откроется десктопное окно приложения (без сборки).
+This will open the desktop application window (without building).
 
 ---
 
-## 📁 Структура файлов проекта
+## Project Structure
 
 ```
-ваша-папка/
-│
-├── 📄 BUILD_DESKTOP.bat      ← ДВОЙНОЙ КЛИК для сборки установщика
-├── 📄 RUN_DEV.bat            ← ДВОЙНОЙ КЛИК для тестирования
-├── 📄 setup-electron.js      ← Автоматическая настройка
-│
-├── 📁 electron/              ← Файлы Electron
-│   ├── main.js
-│   ├── preload.js
-│   └── icon.png
-│
-├── 📄 electron-builder.yml   ← Настройки сборки
-├── 📄 package.json           ← Конфигурация проекта
-│
-├── 📁 src/                   ← Исходный код React
-├── 📁 dist/                  ← Собранный веб-проект
-└── 📁 release/               ← ← Здесь появится установщик!
+your-folder/
+|
++-- BUILD_DESKTOP.bat      <-- DOUBLE-CLICK to build installer
++-- RUN_DEV.bat            <-- DOUBLE-CLICK to test
++-- setup-electron.js      <-- Automatic setup
+|
++-- electron/              <-- Electron files
+|   +-- main.js
+|   +-- preload.js
+|   +-- icon.png
+|
++-- electron-builder.yml   <-- Build settings
++-- package.json           <-- Project config
+|
++-- src/                   <-- React source code
++-- dist/                  <-- Built web project
++-- release/               <-- Installer will appear here!
 ```
 
 ---
 
-## ❓ Что делать если...
+## Troubleshooting
 
-### Ошибка "Node.js не найден"
-→ Скачайте Node.js: https://nodejs.org/ (кнопка LTS)
+### Error "Node.js not found"
+Download Node.js: https://nodejs.org/ (LTS button)
 
-### Ошибка при сборке
-→ Проверьте интернет-соединение и попробуйте снова
+### Build error
+Check your internet connection and try again
 
-### Антивирус удаляет .exe
-→ Добавьте папку `release/` в исключения антивируса
+### Antivirus deletes .exe
+Add the `release/` folder to antivirus exceptions
 
-### Большой размер установщика (~100 MB)
-→ Это нормально для Electron-приложений
+### Large installer size (~100 MB)
+This is normal for Electron applications
 
 ---
 
-## 🎯 Итого
+## Summary
 
-| Действие | Файл |
-|----------|------|
-| Создать установщик | `BUILD_DESKTOP.bat` |
-| Протестировать | `RUN_DEV.bat` |
+| Action | File |
+|--------|------|
+| Create installer | `BUILD_DESKTOP.bat` |
+| Test application | `RUN_DEV.bat` |
 
-**Всё! Больше ничего делать не нужно.** 🎉
+**That's it! Nothing else to do.**

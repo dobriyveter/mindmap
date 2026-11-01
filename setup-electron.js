@@ -1,23 +1,14 @@
-/**
- * 🚀 Автоматическая настройка Electron для MindFlow
- * 
- * Этот скрипт:
- * 1. Модифицирует package.json (добавляет main и electron-скрипты)
- * 2. Проверяет наличие всех нужных файлов
- * 3. Создаёт иконку если её нет
- */
-
 const fs = require('fs');
 const path = require('path');
 
 console.log('');
-console.log('╔══════════════════════════════════════════════╗');
-console.log('║   🧠 MindFlow — Настройка десктопного режима ║');
-console.log('╚══════════════════════════════════════════════╝');
+console.log('========================================================');
+console.log('   MindFlow - Electron Setup');
+console.log('========================================================');
 console.log('');
 
-// Шаг 1: Модифицируем package.json
-console.log('📝 [1/3] Настраиваю package.json...');
+// Step 1: Modify package.json
+console.log('[1/3] Updating package.json...');
 
 const packagePath = path.join(__dirname, 'package.json');
 let packageJson;
@@ -25,19 +16,19 @@ let packageJson;
 try {
   packageJson = JSON.parse(fs.readFileSync(packagePath, 'utf8'));
 } catch (e) {
-  console.error('❌ Ошибка: не удалось прочитать package.json');
+  console.error('[ERROR] Failed to read package.json');
   console.error(e.message);
   process.exit(1);
 }
 
-// Добавляем поле main
+// Add main field
 packageJson.name = 'mindflow';
 packageJson.version = '1.0.0';
-packageJson.description = 'Приложение для создания ментальных карт';
+packageJson.description = 'Mind mapping application';
 packageJson.main = 'electron/main.js';
 packageJson.author = 'MindFlow';
 
-// Добавляем electron-скрипты
+// Add electron scripts
 packageJson.scripts = {
   ...packageJson.scripts,
   'electron:dev': 'concurrently "npm run dev" "wait-on http://localhost:5173 && electron ."',
@@ -45,13 +36,13 @@ packageJson.scripts = {
   'electron:build-portable': 'npm run build && electron-builder --win portable --config electron-builder.yml',
 };
 
-// Сохраняем
+// Save
 fs.writeFileSync(packagePath, JSON.stringify(packageJson, null, 2), 'utf8');
-console.log('   ✅ package.json обновлён');
+console.log('   [OK] package.json updated');
 
-// Шаг 2: Проверяем файлы
+// Step 2: Check files
 console.log('');
-console.log('🔍 [2/3] Проверяю файлы...');
+console.log('[2/3] Checking files...');
 
 const requiredFiles = [
   'electron/main.js',
@@ -65,62 +56,62 @@ let allFilesExist = true;
 for (const file of requiredFiles) {
   const filePath = path.join(__dirname, file);
   if (fs.existsSync(filePath)) {
-    console.log(`   ✅ ${file}`);
+    console.log(`   [OK] ${file}`);
   } else {
-    console.log(`   ❌ ${file} — НЕ НАЙДЕН!`);
+    console.log(`   [ERROR] ${file} - NOT FOUND!`);
     allFilesExist = false;
   }
 }
 
-// Проверяем иконку
+// Check icon
 const iconPath = path.join(__dirname, 'electron', 'icon.png');
 if (!fs.existsSync(iconPath)) {
-  console.log('   ⚠️  electron/icon.png — не найден (будет использована стандартная иконка)');
+  console.log('   [WARN] electron/icon.png - not found (will use default icon)');
 }
 
-// Шаг 3: Проверяем зависимости
+// Step 3: Check dependencies
 console.log('');
-console.log('📦 [3/3] Проверяю зависимости...');
+console.log('[3/3] Checking dependencies...');
 
 const requiredDeps = ['electron', 'electron-builder', 'concurrently', 'wait-on'];
 const allDeps = { ...packageJson.dependencies, ...packageJson.devDependencies };
 
 for (const dep of requiredDeps) {
   if (allDeps[dep]) {
-    console.log(`   ✅ ${dep}`);
+    console.log(`   [OK] ${dep}`);
   } else {
-    console.log(`   ❌ ${dep} — НЕ УСТАНОВЛЕН! Выполните: npm install ${dep}`);
+    console.log(`   [ERROR] ${dep} - NOT INSTALLED! Run: npm install ${dep}`);
     allFilesExist = false;
   }
 }
 
-// Итог
+// Result
 console.log('');
-console.log('══════════════════════════════════════════════');
+console.log('========================================================');
 console.log('');
 
 if (allFilesExist) {
-  console.log('✅ ВСЁ ГОТОВО К СБОРКЕ!');
+  console.log('[OK] READY TO BUILD!');
   console.log('');
-  console.log('📋 Что делать дальше:');
+  console.log('Next steps:');
   console.log('');
-  console.log('   🔧 Запустить в режиме разработки:');
+  console.log('   Run in development mode:');
   console.log('      npm run electron:dev');
   console.log('');
-  console.log('   📦 Собрать установщик:');
+  console.log('   Build installer:');
   console.log('      npm run electron:build');
   console.log('');
-  console.log('   📁 Результат будет в папке: release/');
+  console.log('   Result will be in: release/');
   console.log('');
-  console.log('══════════════════════════════════════════════');
+  console.log('========================================================');
 } else {
-  console.log('❌ Обнаружены проблемы! См. ошибки выше.');
+  console.log('[ERROR] Problems detected! See errors above.');
   console.log('');
-  console.log('Попробуйте:');
+  console.log('Try:');
   console.log('   npm install');
   console.log('   npm install --save-dev concurrently wait-on');
   console.log('');
-  console.log('И запустите этот скрипт снова.');
-  console.log('══════════════════════════════════════════════');
+  console.log('Then run this script again.');
+  console.log('========================================================');
   process.exit(1);
 }

@@ -1,60 +1,43 @@
 @echo off
-chcp 65001 >nul
-title 🧠 MindFlow — Создание десктопного приложения
+title MindFlow - Desktop Build
 cd /d "%~dp0"
 color 0A
 
 echo.
-echo ╔══════════════════════════════════════════════════════╗
-echo ║                                                      ║
-echo ║   🧠  MINDFLOW — Создание десктопного приложения    ║
-echo ║                                                      ║
-echo ╚══════════════════════════════════════════════════════╝
+echo ========================================================
+echo    MindFlow - Desktop Application Builder
+echo ========================================================
 echo.
-echo   Этот скрипт автоматически:
-echo     1. Настроит проект для Electron
-echo     2. Соберёт веб-приложение
-echo     3. Создаст установщик .exe
+echo   This script will:
+echo     1. Setup project for Electron
+echo     2. Build web application
+echo     3. Create Windows installer (.exe)
 echo.
-echo   Время выполнения: 5-15 минут
+echo   Time: 5-15 minutes
 echo.
-echo ══════════════════════════════════════════════════════
+echo ========================================================
 echo.
 
-REM Проверяем Node.js
+REM Check Node.js
 where node >nul 2>nul
 if %errorlevel% neq 0 (
     color 0C
-    echo   ❌ [ОШИБКА] Node.js не найден!
+    echo   [ERROR] Node.js not found!
     echo.
-    echo   Скачайте и установите Node.js:
-    echo   https://nodejs.org/
+    echo   Download from: https://nodejs.org/
     echo.
     pause
     exit /b 1
 )
 
-echo   ✅ Node.js найден:
+echo   [OK] Node.js found:
 node --version
 echo.
 
-REM Проверяем npm
-where npm >nul 2>nul
-if %errorlevel% neq 0 (
-    color 0C
-    echo   ❌ [ОШИБКА] npm не найден!
-    pause
-    exit /b 1
-)
-
-echo   ✅ npm найден:
-npm --version
-echo.
-
-REM Шаг 1: Устанавливаем зависимости
-echo ══════════════════════════════════════════════════════
-echo   📦 [1/4] Устанавливаю зависимости...
-echo ══════════════════════════════════════════════════════
+REM Step 1: Install dependencies
+echo ========================================================
+echo   [1/4] Installing dependencies...
+echo ========================================================
 echo.
 
 if not exist "node_modules" (
@@ -62,58 +45,57 @@ if not exist "node_modules" (
     if %errorlevel% neq 0 (
         color 0C
         echo.
-        echo   ❌ Ошибка установки зависимостей!
+        echo   [ERROR] Failed to install dependencies!
         pause
         exit /b 1
     )
 )
 
-REM Устанавливаем Electron-зависимости
 call npm install --save-dev concurrently wait-on 2>nul
 
-echo   ✅ Зависимости установлены
+echo   [OK] Dependencies installed
 echo.
 
-REM Шаг 2: Настраиваем проект
-echo ══════════════════════════════════════════════════════
-echo   ⚙️  [2/4] Настраиваю проект для Electron...
-echo ══════════════════════════════════════════════════════
+REM Step 2: Setup project
+echo ========================================================
+echo   [2/4] Setting up Electron...
+echo ========================================================
 echo.
 
 node setup-electron.js
 if %errorlevel% neq 0 (
     color 0C
     echo.
-    echo   ❌ Ошибка настройки!
+    echo   [ERROR] Setup failed!
     pause
     exit /b 1
 )
 
 echo.
 
-REM Шаг 3: Собираем веб-приложение
-echo ══════════════════════════════════════════════════════
-echo   🏗️  [3/4] Собираю веб-приложение...
-echo ══════════════════════════════════════════════════════
+REM Step 3: Build web app
+echo ========================================================
+echo   [3/4] Building web application...
+echo ========================================================
 echo.
 
 call npm run build
 if %errorlevel% neq 0 (
     color 0C
     echo.
-    echo   ❌ Ошибка сборки веб-приложения!
+    echo   [ERROR] Web build failed!
     pause
     exit /b 1
 )
 
-echo   ✅ Веб-приложение собрано
+echo   [OK] Web app built
 echo.
 
-REM Шаг 4: Собираем Electron
-echo ══════════════════════════════════════════════════════
-echo   🖥️  [4/4] Создаю десктопное приложение...
-echo   ⏳ Это может занять 5-15 минут...
-echo ══════════════════════════════════════════════════════
+REM Step 4: Build Electron
+echo ========================================================
+echo   [4/4] Creating desktop application...
+echo   Please wait 5-15 minutes...
+echo ========================================================
 echo.
 
 call npx electron-builder --win --config electron-builder.yml
@@ -121,12 +103,12 @@ call npx electron-builder --win --config electron-builder.yml
 if %errorlevel% neq 0 (
     color 0C
     echo.
-    echo   ❌ Ошибка сборки Electron!
+    echo   [ERROR] Electron build failed!
     echo.
-    echo   Возможные причины:
-    echo   • Нет интернета
-    echo   • Антивирус блокирует
-    echo   • Недостаточно места на диске
+    echo   Possible reasons:
+    echo   - No internet connection
+    echo   - Antivirus blocking
+    echo   - Not enough disk space
     echo.
     pause
     exit /b 1
@@ -134,21 +116,19 @@ if %errorlevel% neq 0 (
 
 echo.
 color 0A
-echo ╔══════════════════════════════════════════════════════╗
-echo ║                                                      ║
-echo ║   ✅  СБОРКА ЗАВЕРШЕНА УСПЕШНО!                      ║
-echo ║                                                      ║
-echo ╚══════════════════════════════════════════════════════╝
+echo ========================================================
+echo   BUILD SUCCESSFUL!
+echo ========================================================
 echo.
-echo   📁 Папка с установщиком:
-echo      %cd%\release\
+echo   Installer location:
+echo     %cd%\release\
 echo.
-echo   📦 Найдите файл:
-echo      MindFlow-Setup-1.0.0.exe
+echo   Find file:
+echo     MindFlow-Setup-1.0.0.exe
 echo.
-echo   🚀 Запустите его для установки приложения!
+echo   Run it to install the application!
 echo.
-echo ══════════════════════════════════════════════════════
+echo ========================================================
 echo.
-echo   Нажмите любую клавишу для выхода...
+echo   Press any key to exit...
 pause >nul
