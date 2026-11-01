@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MindMapNode as MindMapNodeType } from '../types';
 import useMindMapStore from '../store/mindmapStore';
+import { openInObsidian } from '../utils/obsidian';
 
 interface Props {
   node: MindMapNodeType;
@@ -12,12 +13,15 @@ const MindMapNodeComponent: React.FC<Props> = ({ node, isSelected, onMouseDown }
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(node.text);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const { updateNode, toggleCollapse, viewMode } = useMindMapStore();
+  const { updateNode, toggleCollapse, viewMode, obsidianVaultPath } = useMindMapStore();
 
   useEffect(() => {
     if (isEditing && textareaRef.current) {
       textareaRef.current.focus();
       textareaRef.current.select();
+      // Auto-resize textarea
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
     }
   }, [isEditing]);
 
@@ -36,6 +40,8 @@ const MindMapNodeComponent: React.FC<Props> = ({ node, isSelected, onMouseDown }
     setIsEditing(false);
     if (editText.trim()) {
       updateNode(node.id, { text: editText });
+    } else {
+      setEditText(node.text);
     }
   };
 
@@ -48,12 +54,12 @@ const MindMapNodeComponent: React.FC<Props> = ({ node, isSelected, onMouseDown }
       setEditText(node.text);
       setIsEditing(false);
     }
+    e.stopPropagation();
   };
 
   const getShapeClasses = () => {
     switch (node.shape) {
       case 'ellipse': return 'rounded-full';
-      case 'diamond': return 'rotate-45';
       case 'rectangle': return 'rounded-none';
       default: return 'rounded-xl';
     }
@@ -62,9 +68,15 @@ const MindMapNodeComponent: React.FC<Props> = ({ node, isSelected, onMouseDown }
   const completedChecklist = node.checklist.filter(i => i.checked).length;
   const totalChecklist = node.checklist.length;
 
+  const handleObsidianClick = (e: React.MouseEvent, noteName: string) => {
+    e.stopPropagation();
+    const vaultName = obsidianVaultPath.split(/[/\\]/).pop() || 'vault';
+    openInObsidian(vaultName, noteName);
+  };
+
   return (
     <div
-      className={`absolute group select-none ${node.shape === 'diamond' ? 'flex items-center justify-center' : ''}`}
+      className={`absolute group select-none node-enter`}
       style={{
         left: node.x,
         top: node.y,
@@ -79,9 +91,9 @@ const MindMapNodeComponent: React.FC<Props> = ({ node, isSelected, onMouseDown }
         className={`
           ${getShapeClasses()}
           border-2 transition-all duration-150
-          ${isSelected ? 'border-blue-500 shadow-lg shadow-blue-200 ring-2 ring-blue-300' : 'border-gray-300 hover:border-gray-400 hover:shadow-md'}
-          ${viewMode.mode === 'presentation' ? 'bg-gray-800 text-white border-gray-600' : ''}
-          flex flex-col overflow-hidden
+          ${isSelected ? 'border-blue-500 shadow-lg shadow-blue-200/50 ring-2 ring-blue-300/50' : 'border-gray-200 hover:border-gray-400 hover:shadow-md'}
+          ${viewMode.mode === 'presentation' ? 'border-gray-600' : ''}
+          flex flex-col overflow-visible
         `}
         style={{
           backgroundColor: viewMode.mode === 'presentation' ? '#1f2937' : node.backgroundColor,
@@ -92,40 +104,52 @@ const MindMapNodeComponent: React.FC<Props> = ({ node, isSelected, onMouseDown }
           minHeight: node.height,
         }}
       >
-        {/* Header with collapse button */}
-        <div className="flex items-center justify-between px-3 py-2">
-          <div className="flex items-center gap-1 flex-1 min-w-0">
-            {node.children.length > 0 && (
-              <button
-                onClick={(e) => { e.stopPropagation(); toggleCollapse(node.id); }}
-                className="w-5 h-5 flex items-center justify-center rounded hover:bg-black/10 text-xs flex-shrink-0"
-              >
-                {node.collapsed ? '▶' : '▼'}
-              </button>
-            )}
+        {/* Header with collapse button and text */}
+        <div className="flex items-start px-3 py-2 gap-1">
+          {/* Collapse button */}
+          {node.children.length > 0 && (
+            <button
+              onClick={(e) => { e.stopPropagation(); toggleCollapse(node.id); }}
+              className="w-5 h-5 flex items-center justify-center rounded hover:bg-black/10 text-xs flex-shrink-0 mt-0.5"
+            >
+              {node.collapsed ? '▶' : '▼'}
+            </button>
+          )}
+          
+          {/* Text content - inline editing */}
+          <div className="flex-1 min-w-0">
             {isEditing ? (
               <textarea
                 ref={textareaRef}
                 value={editText}
-                onChange={(e) => setEditText(e.target.value)}
+                onChange={(e) => {
+                  setEditText(e.target.value);
+                  // Auto-resize
+                  e.target.style.height = 'auto';
+                  e.target.style.height = e.target.scrollHeight + 'px';
+                }}
                 onBlur={handleBlur}
                 onKeyDown={handleKeyDown}
-                className="w-full bg-transparent border-none outline-none resize-none text-inherit"
-                style={{ fontSize: 'inherit', fontWeight: 'inherit', color: 'inherit' }}
-                rows={2}
+                className="w-full bg-white/80 border border-blue-300 rounded px-2 py-1 resize-none text-inherit leading-snug"
+                style={{ fontSize: 'inherit', fontWeight: 'inherit', color: '#1a1a2e', minHeight: '2em' }}
+                rows={1}
               />
             ) : (
-              <span className="truncate">{node.text}</span>
+              <span className="break-words leading-snug">{node.text}</span>
             )}
           </div>
           
-          {/* Indicators */}
-          <div className="flex items-center gap-1 flex-shrink-0 ml-1">
-            {node.links.length > 0 && <span className="text-xs" title={`${node.links.length} ссылок`}>🔗</span>}
-            {node.obsidianLinks.length > 0 && <span className="text-xs" title={`${node.obsidianLinks.length} заметок Obsidian`}>📝</span>}
-            {node.imageUrl && <span className="text-xs" title="Есть изображение">🖼️</span>}
+          {/* Status indicators */}
+          <div className="flex items-center gap-0.5 flex-shrink-0 ml-1">
+            {node.links.length > 0 && (
+              <span className="text-xs opacity-70" title={`${node.links.length} ссылок`}>🔗</span>
+            )}
+            {node.obsidianLinks.length > 0 && (
+              <span className="text-xs opacity-70" title={`${node.obsidianLinks.length} заметок Obsidian`}>📝</span>
+            )}
+            {node.imageUrl && <span className="text-xs opacity-70" title="Изображение">🖼️</span>}
             {totalChecklist > 0 && (
-              <span className="text-xs" title={`Чеклист: ${completedChecklist}/${totalChecklist}`}>
+              <span className="text-[10px] opacity-70" title={`Чеклист: ${completedChecklist}/${totalChecklist}`}>
                 ☑️{completedChecklist}/{totalChecklist}
               </span>
             )}
@@ -134,20 +158,66 @@ const MindMapNodeComponent: React.FC<Props> = ({ node, isSelected, onMouseDown }
 
         {/* Image preview */}
         {node.imageUrl && (
-          <div className="px-3 pb-2">
-            <img src={node.imageUrl} alt="" className="w-full h-20 object-cover rounded" />
+          <div className="px-3 pb-1">
+            <img src={node.imageUrl} alt="" className="w-full h-16 object-cover rounded border border-gray-200" />
           </div>
         )}
 
-        {/* Checklist preview */}
+        {/* Obsidian links - shown inline in the node */}
+        {node.obsidianLinks.length > 0 && !node.collapsed && (
+          <div className="px-3 pb-1 flex flex-wrap gap-1">
+            {node.obsidianLinks.map((link, i) => (
+              <button
+                key={i}
+                onClick={(e) => handleObsidianClick(e, link.noteName)}
+                className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded text-[10px] hover:bg-purple-200 transition-colors border border-purple-200 max-w-full"
+                title={`Открыть "${link.noteName}" в Obsidian`}
+              >
+                <span>📄</span>
+                <span className="truncate">{link.noteName}</span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Web links - shown inline in the node */}
+        {node.links.length > 0 && !node.collapsed && (
+          <div className="px-3 pb-1 flex flex-wrap gap-1">
+            {node.links.slice(0, 3).map((link, i) => {
+              const displayUrl = link.replace(/^https?:\/\//, '').slice(0, 25);
+              return (
+                <a
+                  key={i}
+                  href={link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded text-[10px] hover:bg-blue-100 transition-colors border border-blue-200 max-w-full truncate"
+                  title={link}
+                >
+                  <span>🔗</span>
+                  <span className="truncate">{displayUrl}{link.length > 25 ? '...' : ''}</span>
+                </a>
+              );
+            })}
+            {node.links.length > 3 && (
+              <span className="text-[10px] text-gray-400 self-center">+{node.links.length - 3}</span>
+            )}
+          </div>
+        )}
+
+        {/* Checklist progress bar */}
         {totalChecklist > 0 && !node.collapsed && (
           <div className="px-3 pb-2">
             <div className="w-full bg-black/10 rounded-full h-1.5">
               <div
-                className="bg-green-500 h-1.5 rounded-full transition-all"
+                className="bg-green-500 h-1.5 rounded-full transition-all duration-300"
                 style={{ width: `${(completedChecklist / totalChecklist) * 100}%` }}
               />
             </div>
+            <span className="text-[9px] opacity-60 mt-0.5 block">
+              {completedChecklist} из {totalChecklist}
+            </span>
           </div>
         )}
       </div>
