@@ -98,12 +98,19 @@ echo   Please wait 5-15 minutes...
 echo ========================================================
 echo.
 
+REM Close Explorer windows that might lock files
+taskkill /f /im explorer.exe >nul 2>&1
+timeout /t 1 /nobreak >nul
+
 REM Clean release folder to avoid EBUSY errors
 if exist "release" (
     echo   Cleaning old build files...
     rmdir /s /q release 2>nul
-    timeout /t 2 /nobreak >nul
+    timeout /t 3 /nobreak >nul
 )
+
+REM Restart Explorer
+start explorer.exe
 
 call npx electron-builder --win --config electron-builder.yml
 
