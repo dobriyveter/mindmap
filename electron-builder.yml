@@ -17,7 +17,6 @@ win:
     - target: nsis
       arch:
         - x64
-  icon: electron/icon.png
   artifactName: ${productName}-Setup-${version}.${ext}
 
 nsis:
