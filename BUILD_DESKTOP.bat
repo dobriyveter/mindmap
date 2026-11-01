@@ -98,6 +98,13 @@ echo   Please wait 5-15 minutes...
 echo ========================================================
 echo.
 
+REM Clean release folder to avoid EBUSY errors
+if exist "release" (
+    echo   Cleaning old build files...
+    rmdir /s /q release 2>nul
+    timeout /t 2 /nobreak >nul
+)
+
 call npx electron-builder --win --config electron-builder.yml
 
 if %errorlevel% neq 0 (
