@@ -6,14 +6,51 @@ import Sidebar from './components/Sidebar';
 import TemplateModal from './components/TemplateModal';
 import SettingsModal from './components/SettingsModal';
 import EisenhowerMatrix from './components/EisenhowerMatrix';
+import ProjectList from './components/ProjectList';
 
 const App: React.FC = () => {
-  const { theme, viewMode } = useMindMapStore();
+  const { theme, viewMode, nodes, currentProjectId, isDirty } = useMindMapStore();
+  const [showProjectList, setShowProjectList] = React.useState(!currentProjectId && nodes.length === 0);
+
+  const handleSelectProject = (projectId: string) => {
+    useMindMapStore.getState().loadProject(projectId);
+    setShowProjectList(false);
+  };
+
+  const handleCreateNew = () => {
+    useMindMapStore.getState().createNewProject();
+    setShowProjectList(false);
+  };
+
+  const handleBackToProjects = () => {
+    if (isDirty) {
+      if (window.confirm('У вас есть несохранённые изменения. Сохранить перед выходом?')) {
+        useMindMapStore.getState().saveProject();
+      }
+    }
+    setShowProjectList(true);
+  };
+
+  // Показываем список проектов если нет открытого проекта
+  if (showProjectList) {
+    return <ProjectList onSelectProject={handleSelectProject} onCreateNew={handleCreateNew} />;
+  }
 
   return (
     <div className={`h-screen w-screen flex flex-col overflow-hidden ${theme === 'dark' ? 'dark bg-gray-900' : 'bg-white'}`}>
       {/* Toolbar - hidden in presentation mode */}
-      {viewMode.mode !== 'presentation' && <Toolbar />}
+      {viewMode.mode !== 'presentation' && (
+        <div className="flex items-center">
+          <button
+            onClick={handleBackToProjects}
+            className="p-2 hover:bg-gray-100 rounded transition-colors"
+            title="Вернуться к списку проектов"
+          >
+            📁
+          </button>
+          <Toolbar />
+        </div>
+      )}
 
       {/* Presentation mode toolbar */}
       {viewMode.mode === 'presentation' && (

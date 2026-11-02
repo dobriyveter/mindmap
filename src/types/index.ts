@@ -78,6 +78,20 @@ export interface ViewMode {
   focusNodeId?: string;
 }
 
+export interface Project {
+  id: string;
+  name: string;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
+  nodesCount: number;
+  connectionsCount: number;
+  data: {
+    nodes: MindMapNode[];
+    connections: NodeConnection[];
+  };
+}
+
 export interface MindMapState {
   nodes: MindMapNode[];
   connections: NodeConnection[];
@@ -96,4 +110,6 @@ export interface MindMapState {
   theme: 'light' | 'dark';
   obsidianVaultPath: string;
   obsidianApiKey: string;
+  currentProjectId: string | null;
+  projects: Project[];
 }

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
-import { MindMapNode, NodeConnection, ViewMode, ChecklistItem, ObsidianLink, EisenhowerTask } from '../types';
+import { MindMapNode, NodeConnection, ViewMode, ChecklistItem, ObsidianLink, EisenhowerTask, Project } from '../types';
 import { setObsidianApiKey as setObsidianApiKeyUtil } from '../utils/obsidian';
 
 interface MindMapStore {
@@ -27,6 +27,8 @@ interface MindMapStore {
   connectingFrom: string | null;
   eisenhowerTasks: EisenhowerTask[];
   showEisenhowerMatrix: boolean;
+  currentProjectId: string | null;
+  projects: Project[];
 
   // Actions
   addNode: (x: number, y: number, parentId?: string) => string;
@@ -69,6 +71,13 @@ interface MindMapStore {
   addEisenhowerTask: (task: EisenhowerTask) => void;
   updateEisenhowerTask: (id: string, updates: Partial<EisenhowerTask>) => void;
   deleteEisenhowerTask: (id: string) => void;
+  
+  // Project management
+  saveProject: () => void;
+  loadProject: (projectId: string) => void;
+  deleteProject: (projectId: string) => void;
+  createNewProject: () => void;
+  loadProjects: () => void;
 }
 
 const createDefaultNode = (x: number, y: number, parentId?: string): MindMapNode => ({
@@ -117,6 +126,8 @@ const useMindMapStore = create<MindMapStore>((set, get) => ({
   connectingFrom: null,
   eisenhowerTasks: [],
   showEisenhowerMatrix: false,
+  currentProjectId: null,
+  projects: [],
 
   addNode: (x: number, y: number, parentId?: string) => {
     const id = uuidv4();
@@ -507,6 +518,105 @@ const useMindMapStore = create<MindMapStore>((set, get) => ({
     set(state => ({
       eisenhowerTasks: state.eisenhowerTasks.filter(t => t.id !== id),
     }));
+  },
+
+  // Project management
+  saveProject: () => {
+    const state = get();
+    const projectId = state.currentProjectId || uuidv4();
+    const now = new Date().toISOString();
+    
+    const project: Project = {
+      id: projectId,
+      name: state.mapTitle || 'Без названия',
+      description: '',
+      createdAt: state.projects.find(p => p.id === projectId)?.createdAt || now,
+      updatedAt: now,
+      nodesCount: state.nodes.length,
+      connectionsCount: state.connections.length,
+      data: {
+        nodes: JSON.parse(JSON.stringify(state.nodes)),
+        connections: JSON.parse(JSON.stringify(state.connections)),
+      },
+    };
+
+    set(state => {
+      const existingIndex = state.projects.findIndex(p => p.id === projectId);
+      const newProjects = [...state.projects];
+      if (existingIndex >= 0) {
+        newProjects[existingIndex] = project;
+      } else {
+        newProjects.push(project);
+      }
+      
+      // Сохраняем в localStorage
+      localStorage.setItem('mindflow_projects', JSON.stringify(newProjects));
+      
+      return {
+        projects: newProjects,
+        currentProjectId: projectId,
+        isDirty: false,
+        lastSaved: new Date(),
+      };
+    });
+  },
+
+  loadProject: (projectId: string) => {
+    const state = get();
+    const project = state.projects.find(p => p.id === projectId);
+    if (!project) return;
+
+    set({
+      nodes: JSON.parse(JSON.stringify(project.data.nodes)),
+      connections: JSON.parse(JSON.stringify(project.data.connections)),
+      mapTitle: project.name,
+      currentProjectId: projectId,
+      selectedNodeId: null,
+      selectedNodeIds: [],
+      selectedConnectionId: null,
+      history: [],
+      historyIndex: -1,
+      isDirty: false,
+    });
+  },
+
+  deleteProject: (projectId: string) => {
+    set(state => {
+      const newProjects = state.projects.filter(p => p.id !== projectId);
+      localStorage.setItem('mindflow_projects', JSON.stringify(newProjects));
+      
+      return {
+        projects: newProjects,
+        currentProjectId: state.currentProjectId === projectId ? null : state.currentProjectId,
+      };
+    });
+  },
+
+  createNewProject: () => {
+    set({
+      nodes: [],
+      connections: [],
+      mapTitle: 'Новый проект',
+      currentProjectId: null,
+      selectedNodeId: null,
+      selectedNodeIds: [],
+      selectedConnectionId: null,
+      history: [],
+      historyIndex: -1,
+      isDirty: false,
+    });
+  },
+
+  loadProjects: () => {
+    const data = localStorage.getItem('mindflow_projects');
+    if (data) {
+      try {
+        const projects = JSON.parse(data);
+        set({ projects });
+      } catch (e) {
+        console.error('Failed to load projects:', e);
+      }
+    }
   },
 }));
 

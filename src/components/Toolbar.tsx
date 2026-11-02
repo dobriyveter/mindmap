@@ -85,9 +85,12 @@ const Toolbar: React.FC = () => {
 
       {/* Save */}
       <button
-        onClick={handleSave}
+        onClick={() => {
+          useMindMapStore.getState().saveProject();
+          handleSave();
+        }}
         className="p-2 rounded hover:bg-gray-100 text-gray-600"
-        title="Сохранить (Ctrl+S)"
+        title="Сохранить проект (Ctrl+S)"
       >
         💾
       </button>
