@@ -163,6 +163,15 @@ const Toolbar: React.FC = () => {
 
       <div className="flex-1" />
 
+      {/* Eisenhower Matrix */}
+      <button
+        onClick={() => useMindMapStore.setState({ showEisenhowerMatrix: true })}
+        className="p-2 rounded hover:bg-gray-100 text-gray-600"
+        title="Матрица Эйзенхауэра"
+      >
+        📊
+      </button>
+
       {/* Templates */}
       <button
         onClick={() => store.setShowTemplates(true)}

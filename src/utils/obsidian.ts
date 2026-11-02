@@ -333,5 +333,16 @@ export function generateObsidianUri(vaultName: string, noteName: string): string
  */
 export function openInObsidian(vaultName: string, noteName: string): void {
   const uri = generateObsidianUri(vaultName, noteName);
+  
+  // В Electron используем shell.openExternal через IPC
+  if (isElectron) {
+    const electronAPI = getElectronAPI();
+    if (electronAPI && 'openExternal' in electronAPI) {
+      (electronAPI as any).openExternal(uri);
+      return;
+    }
+  }
+  
+  // Fallback для браузера
   window.open(uri, '_blank');
 }

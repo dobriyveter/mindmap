@@ -69,6 +69,21 @@ const MindMapNodeComponent: React.FC<Props> = ({ node, isSelected: isSelectedPro
   const completedChecklist = node.checklist.filter(i => i.checked).length;
   const totalChecklist = node.checklist.length;
 
+  // Получаем задачи Эйзенхауэра для этого узла
+  const { eisenhowerTasks } = useMindMapStore();
+  const nodeTasks = eisenhowerTasks.filter(t => t.nodeId === node.id);
+  const urgentTasks = nodeTasks.filter(t => (t.quadrant === 'A' || t.quadrant === 'C') && !t.done);
+  
+  // Определяем цвет подсветки на основе приоритета задач
+  const getPriorityColor = () => {
+    if (urgentTasks.some(t => t.quadrant === 'A')) return '#dc2626'; // Красный - важно и срочно
+    if (urgentTasks.some(t => t.quadrant === 'B')) return '#ea580c'; // Оранжевый - важно
+    if (urgentTasks.some(t => t.quadrant === 'C')) return '#2563eb'; // Синий - срочно
+    return null;
+  };
+  
+  const priorityColor = getPriorityColor();
+
   const handleObsidianClick = (e: React.MouseEvent, noteName: string) => {
     e.stopPropagation();
     const vaultName = obsidianVaultPath.split(/[/\\]/).pop() || 'vault';
@@ -157,6 +172,15 @@ const MindMapNodeComponent: React.FC<Props> = ({ node, isSelected: isSelectedPro
                 ☑️{completedChecklist}/{totalChecklist}
               </span>
             )}
+      {/* Priority indicator - показывает срочность задач Эйзенхауэра */}
+      {priorityColor && viewMode.mode === 'edit' && (
+        <div
+          className="absolute -top-1 -right-1 w-4 h-4 rounded-full border-2 border-white shadow-md animate-pulse"
+          style={{ backgroundColor: priorityColor }}
+          title={`Срочные задачи: ${urgentTasks.length}`}
+        />
+      )}
+
       {/* Add child button - visible on hover when selected */}
       {isSelected && viewMode.mode === 'edit' && (
         <button

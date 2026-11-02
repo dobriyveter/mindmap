@@ -29,6 +29,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     writeNote: (vaultPath, notePath, content) => ipcRenderer.invoke('obsidian:write-note', vaultPath, notePath, content),
   },
   
+  // Открытие внешних URL (для obsidian:// протокола)
+  openExternal: (url) => ipcRenderer.invoke('open-external', url),
+  
   // Информация о платформе
   platform: process.platform,
   isPackaged: process.env.NODE_ENV === 'production',

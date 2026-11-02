@@ -18,6 +18,28 @@ export interface ObsidianLink {
   noteName: string;
 }
 
+export type EisenhowerQuadrant = 'A' | 'B' | 'C' | 'D';
+
+export interface EisenhowerTask {
+  id: string;
+  text: string;
+  quadrant: EisenhowerQuadrant;
+  done: boolean;
+  createdAt: string;
+  nodeId?: string; // привязка к узлу карты
+}
+
+export interface QuadrantConfig {
+  id: EisenhowerQuadrant;
+  title: string;
+  subtitle: string;
+  action: string;
+  color: string;
+  bgColor: string;
+  borderColor: string;
+  icon: string;
+}
+
 export interface MindMapNode {
   id: string;
   x: number;

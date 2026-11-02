@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
-import { MindMapNode, NodeConnection, ViewMode, ChecklistItem, ObsidianLink } from '../types';
+import { MindMapNode, NodeConnection, ViewMode, ChecklistItem, ObsidianLink, EisenhowerTask } from '../types';
 import { setObsidianApiKey as setObsidianApiKeyUtil } from '../utils/obsidian';
 
 interface MindMapStore {
@@ -25,6 +25,8 @@ interface MindMapStore {
   showTemplates: boolean;
   showSettings: boolean;
   connectingFrom: string | null;
+  eisenhowerTasks: EisenhowerTask[];
+  showEisenhowerMatrix: boolean;
 
   // Actions
   addNode: (x: number, y: number, parentId?: string) => string;
@@ -64,6 +66,9 @@ interface MindMapStore {
   duplicateNode: (nodeId: string) => void;
   connectSelectedNodes: () => void;
   clearMultiSelect: () => void;
+  addEisenhowerTask: (task: EisenhowerTask) => void;
+  updateEisenhowerTask: (id: string, updates: Partial<EisenhowerTask>) => void;
+  deleteEisenhowerTask: (id: string) => void;
 }
 
 const createDefaultNode = (x: number, y: number, parentId?: string): MindMapNode => ({
@@ -110,6 +115,8 @@ const useMindMapStore = create<MindMapStore>((set, get) => ({
   showTemplates: false,
   showSettings: false,
   connectingFrom: null,
+  eisenhowerTasks: [],
+  showEisenhowerMatrix: false,
 
   addNode: (x: number, y: number, parentId?: string) => {
     const id = uuidv4();
@@ -480,6 +487,26 @@ const useMindMapStore = create<MindMapStore>((set, get) => ({
 
   clearMultiSelect: () => {
     set({ selectedNodeIds: [] });
+  },
+
+  addEisenhowerTask: (task: EisenhowerTask) => {
+    set(state => ({
+      eisenhowerTasks: [...state.eisenhowerTasks, task],
+    }));
+  },
+
+  updateEisenhowerTask: (id: string, updates: Partial<EisenhowerTask>) => {
+    set(state => ({
+      eisenhowerTasks: state.eisenhowerTasks.map(t =>
+        t.id === id ? { ...t, ...updates } : t
+      ),
+    }));
+  },
+
+  deleteEisenhowerTask: (id: string) => {
+    set(state => ({
+      eisenhowerTasks: state.eisenhowerTasks.filter(t => t.id !== id),
+    }));
   },
 }));
 

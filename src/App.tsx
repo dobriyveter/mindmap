@@ -5,6 +5,7 @@ import Toolbar from './components/Toolbar';
 import Sidebar from './components/Sidebar';
 import TemplateModal from './components/TemplateModal';
 import SettingsModal from './components/SettingsModal';
+import EisenhowerMatrix from './components/EisenhowerMatrix';
 
 const App: React.FC = () => {
   const { theme, viewMode } = useMindMapStore();
@@ -100,6 +101,9 @@ const App: React.FC = () => {
       {/* Modals */}
       <TemplateModal />
       <SettingsModal />
+      {useMindMapStore.getState().showEisenhowerMatrix && (
+        <EisenhowerMatrix onClose={() => useMindMapStore.setState({ showEisenhowerMatrix: false })} />
+      )}
     </div>
   );
 };

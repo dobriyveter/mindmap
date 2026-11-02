@@ -357,3 +357,13 @@ ipcMain.handle('obsidian:write-note', async (event, vaultPath, notePath, content
     return { success: false, error: error.message };
   }
 });
+
+// Открытие внешних URL (для obsidian:// протокола)
+ipcMain.handle('open-external', async (event, url) => {
+  try {
+    await shell.openExternal(url);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
