@@ -1,26 +1,37 @@
 {
-  "name": "sandbox-workspace",
+  "name": "mindflow",
+  "version": "1.0.0",
+  "description": "Mind mapping application for Windows",
+  "author": "MindFlow",
+  "main": "electron/main.cjs",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && electron .\"",
+    "electron:build": "npm run build && electron-builder --win --config electron-builder.yml"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.1.0",
     "@dnd-kit/sortable": "^8.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@supabase/supabase-js": "^2.98.0",
+    "@types/file-saver": "^2.0.7",
     "canvas-confetti": "^1.9.3",
     "date-fns": "^2.30.0",
+    "file-saver": "^2.0.5",
     "framer-motion": "^11.16.1",
+    "html2canvas": "^1.4.1",
     "lucide-react": "^0.294.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-icons": "^5.7.0",
     "react-router-dom": "^6.8.0",
     "recharts": "^2.10.0",
-    "uuid": "^9.0.1"
+    "uuid": "^9.0.1",
+    "zustand": "^5.0.16"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.7",
@@ -29,8 +40,13 @@
     "@types/react-dom": "^18.2.0",
     "@types/uuid": "^9.0.7",
     "@vitejs/plugin-react": "^4.3.4",
+    "concurrently": "^10.0.6",
+    "electron": "^45.2.1",
+    "electron-builder": "^26.18.0",
+    "electron-is-dev": "^3.0.1",
     "tailwindcss": "^4.1.7",
     "typescript": "^5.7.0",
-    "vite": "^6.3.5"
+    "vite": "^6.3.5",
+    "wait-on": "^9.5.1"
   }
 }
