@@ -23,12 +23,9 @@ if not exist "build\win-unpacked\MindFlow.exe" (
 echo   [OK] MindFlow.exe found
 echo.
 
-REM Получаем путь к рабочему столу
-set "DESKTOP=%USERPROFILE%\Desktop"
-
-REM Создаём ярлык
+REM Создаём ярлык через VBS скрипт
 echo   Creating shortcut...
-powershell -Command "$WshShell = New-Object -comObject WScript.Shell; $Shortcut = $WshShell.CreateShortcut('%DESKTOP%\MindFlow.lnk'); $Shortcut.TargetPath = '%cd%\build\win-unpacked\MindFlow.exe'; $Shortcut.WorkingDirectory = '%cd%\build\win-unpacked'; $Shortcut.IconLocation = '%cd%\build\win-unpacked\MindFlow.exe,0'; $Shortcut.Description = 'MindFlow - Mind Mapping Application'; $Shortcut.Save()"
+cscript //nologo create_shortcut.vbs
 
 if %errorlevel% neq 0 (
     color 0C
@@ -43,9 +40,7 @@ echo ========================================================
 echo   [OK] Shortcut created successfully!
 echo ========================================================
 echo.
-echo   Location: %DESKTOP%\MindFlow.lnk
-echo.
-echo   You can now launch MindFlow from the desktop shortcut!
+echo   Ярлык создан на рабочем столе!
 echo.
 echo ========================================================
 echo.
