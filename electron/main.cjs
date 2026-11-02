@@ -46,7 +46,14 @@ function createWindow() {
     mainWindow.webContents.openDevTools();
   } else {
     // В продакшене — загружаем собранные файлы
-    mainWindow.loadFile(path.join(__dirname, '..', 'dist', 'index.html'));
+    // Electron-builder упаковывает файлы в resources/app/dist/
+    const indexPath = path.join(__dirname, '..', 'dist', 'index.html');
+    console.log('Loading index from:', indexPath);
+    
+    mainWindow.loadFile(indexPath).catch(err => {
+      console.error('Failed to load index.html:', err);
+      dialog.showErrorBox('Error', `Failed to load application:\n${err.message}\n\nPath: ${indexPath}`);
+    });
   }
 
   // Внешние ссылки открываются в браузере

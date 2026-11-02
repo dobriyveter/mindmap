@@ -8,10 +8,8 @@ directories:
 
 files:
   - dist/**/*
-  - electron/**/*
+  - electron/**/*.cjs
   - package.json
-  - "!electron/main.js"
-  - "!electron/preload.js"
 
 win:
   target:
