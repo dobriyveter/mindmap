@@ -7,7 +7,7 @@
  * Default endpoint: http://127.0.0.1:27124
  */
 
-// Используем HTTP вместо HTTPS чтобы избежать проблем с самоподписанным сертификатом
+// Используем HTTP для работы в браузере (пользователь должен отключить HTTPS в настройках плагина)
 const OBSIDIAN_API_BASE = 'http://127.0.0.1:27124';
 
 // API ключ будет устанавливаться из настроек
@@ -65,14 +65,14 @@ export async function checkObsidianConnection(): Promise<boolean> {
   console.log('🔑 API Key:', apiKey ? `${apiKey.substring(0, 10)}...` : 'NOT SET');
   
   try {
-    // Always send API key in both header and URL parameter
+    // Send API key in Authorization header (as per documentation)
     const headers = getHeaders();
-    const urlWithKey = apiKey ? `${OBSIDIAN_API_BASE}/vault?apikey=${encodeURIComponent(apiKey)}` : `${OBSIDIAN_API_BASE}/vault`;
+    const url = `${OBSIDIAN_API_BASE}/vault`;
     
-    console.log('📤 Request URL:', urlWithKey);
+    console.log('📤 Request URL:', url);
     console.log('📤 Request headers:', headers);
     
-    const response = await fetch(urlWithKey, {
+    const response = await fetch(url, {
       method: 'GET',
       headers,
     });
