@@ -1,0 +1,18 @@
+appId: com.mindflow.app
+productName: MindFlow
+copyright: Copyright © 2026
+
+directories:
+  output: build
+  buildResources: assets
+
+files:
+  - dist/**/*
+  - electron/**/*.cjs
+  - package.json
+
+win:
+  target:
+    - target: dir
+      arch:
+        - x64
