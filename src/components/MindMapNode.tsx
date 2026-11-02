@@ -211,11 +211,37 @@ export const MindMapNodeComponent: React.FC<Props> = ({ node, isSelected, onMous
 
         {node.checklist.length > 0 && !node.collapsed && (
           <div className="px-3 pb-2">
-            <div className="w-full bg-black/10 rounded-full h-1.5">
+            <div className="w-full bg-black/10 rounded-full h-1.5 mb-1">
               <div
                 className="bg-green-500 h-1.5 rounded-full transition-all"
                 style={{ width: `${(node.checklist.filter(i => i.checked).length / node.checklist.length) * 100}%` }}
               />
+            </div>
+            <div className="space-y-1 max-h-32 overflow-y-auto">
+              {node.checklist.slice(0, 5).map(item => (
+                <div key={item.id} className="flex items-center gap-1 text-xs">
+                  <input
+                    type="checkbox"
+                    checked={item.checked}
+                    onChange={(e) => {
+                      e.stopPropagation();
+                      const checklist = [...node.checklist];
+                      const idx = checklist.findIndex(i => i.id === item.id);
+                      if (idx !== -1) {
+                        checklist[idx] = { ...item, checked: e.target.checked };
+                        useMindMapStore.getState().updateNode(node.id, { checklist });
+                      }
+                    }}
+                    className="flex-shrink-0"
+                  />
+                  <span className={item.checked ? 'line-through text-gray-400' : 'text-gray-700'}>
+                    {item.text}
+                  </span>
+                </div>
+              ))}
+              {node.checklist.length > 5 && (
+                <div className="text-xs text-gray-400">+{node.checklist.length - 5} ещё</div>
+              )}
             </div>
           </div>
         )}

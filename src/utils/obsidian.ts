@@ -64,6 +64,36 @@ export function generateObsidianUri(vaultName: string, noteName: string): string
   return `obsidian://open?vault=${encodeURIComponent(vaultName)}&file=${encodeURIComponent(noteName)}`;
 }
 
+export async function readObsidianNote(notePath: string): Promise<string | null> {
+  if (isElectron && vaultPath) {
+    const electronAPI = (window as any).electronAPI;
+    if (electronAPI?.obsidian?.readNote) {
+      try {
+        const result = await electronAPI.obsidian.readNote(vaultPath, notePath);
+        return result.success ? result.content : null;
+      } catch {
+        return null;
+      }
+    }
+  }
+  return null;
+}
+
+export async function writeObsidianNote(notePath: string, content: string): Promise<boolean> {
+  if (isElectron && vaultPath) {
+    const electronAPI = (window as any).electronAPI;
+    if (electronAPI?.obsidian?.writeNote) {
+      try {
+        const result = await electronAPI.obsidian.writeNote(vaultPath, notePath, content);
+        return result.success;
+      } catch {
+        return false;
+      }
+    }
+  }
+  return false;
+}
+
 export function openInObsidian(vaultName: string, noteName: string): void {
   const uri = generateObsidianUri(vaultName, noteName);
   if (isElectron) {

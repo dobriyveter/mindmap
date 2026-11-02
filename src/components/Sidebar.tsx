@@ -161,15 +161,78 @@ const Sidebar: React.FC = () => {
         </div>
 
         <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">☑️ Чеклист</label>
+          <div className="space-y-1 mb-2">
+            {selectedNode!.checklist.map(item => (
+              <div key={item.id} className="flex items-center gap-1 group">
+                <input
+                  type="checkbox"
+                  checked={item.checked}
+                  onChange={(e) => {
+                    const checklist = [...selectedNode!.checklist];
+                    const idx = checklist.findIndex(i => i.id === item.id);
+                    if (idx !== -1) {
+                      checklist[idx] = { ...item, checked: e.target.checked };
+                      useMindMapStore.getState().updateNode(selectedNode!.id, { checklist });
+                    }
+                  }}
+                  className="flex-shrink-0"
+                />
+                <input
+                  type="text"
+                  value={item.text}
+                  onChange={(e) => {
+                    const checklist = [...selectedNode!.checklist];
+                    const idx = checklist.findIndex(i => i.id === item.id);
+                    if (idx !== -1) {
+                      checklist[idx] = { ...item, text: e.target.value };
+                      useMindMapStore.getState().updateNode(selectedNode!.id, { checklist });
+                    }
+                  }}
+                  className={`flex-1 border-none outline-none text-xs bg-transparent ${item.checked ? 'line-through text-gray-400' : 'text-gray-700'}`}
+                  placeholder="Пункт чеклиста..."
+                />
+                <button
+                  onClick={() => {
+                    const checklist = selectedNode!.checklist.filter(i => i.id !== item.id);
+                    useMindMapStore.getState().updateNode(selectedNode!.id, { checklist });
+                  }}
+                  className="text-red-400 text-xs opacity-0 group-hover:opacity-100"
+                >✕</button>
+              </div>
+            ))}
+          </div>
+          <button
+            onClick={() => {
+              const checklist = [...selectedNode!.checklist, {
+                id: Date.now().toString(),
+                text: '',
+                checked: false
+              }];
+              useMindMapStore.getState().updateNode(selectedNode!.id, { checklist });
+            }}
+            className="w-full py-1 bg-gray-100 text-gray-600 rounded text-xs hover:bg-gray-200"
+          >+ Добавить пункт</button>
+        </div>
+
+        <div>
           <label className="block text-xs font-medium text-gray-500 mb-1">📝 Заметки Obsidian</label>
           {selectedNode!.obsidianLinks.map((link, i) => (
             <div key={i} className="flex items-center gap-1 mb-1 group">
-              <span className="text-xs text-purple-600 truncate flex-1">📄 {link.noteName}</span>
+              <button
+                onClick={() => {
+                  const vaultName = useMindMapStore.getState().obsidianVaultPath.split(/[/\\]/).pop() || 'vault';
+                  import('../utils/obsidian').then(mod => mod.openInObsidian(vaultName, link.noteName));
+                }}
+                className="text-xs text-purple-600 truncate flex-1 hover:underline text-left"
+              >
+                📄 {link.noteName}
+              </button>
               <button onClick={() => {
                 const links = [...selectedNode!.obsidianLinks];
                 links.splice(i, 1);
                 useMindMapStore.getState().updateNode(selectedNode!.id, { obsidianLinks: links });
-              }} className="text-red-400 text-xs">✕</button>
+              }} className="text-red-400 text-xs opacity-0 group-hover:opacity-100">✕</button>
             </div>
           ))}
           <div className="flex gap-1 mt-1">
@@ -199,6 +262,20 @@ const Sidebar: React.FC = () => {
               }
             }} className="px-2 py-1 bg-purple-500 text-white rounded-lg text-xs">+</button>
           </div>
+          {newObsidianNote.trim() && (
+            <button
+              onClick={async () => {
+                const { searchObsidianNotes } = await import('../utils/obsidian');
+                const results = await searchObsidianNotes(newObsidianNote);
+                if (results.length > 0) {
+                  alert(`Найдено ${results.length} заметок:\n${results.slice(0, 5).map(r => r.name).join('\n')}`);
+                } else {
+                  alert('Заметки не найдены');
+                }
+              }}
+              className="mt-1 text-xs text-purple-600 hover:text-purple-800"
+            >🔍 Искать в Obsidian</button>
+          )}
         </div>
 
         <div className="border-t pt-3 space-y-2">

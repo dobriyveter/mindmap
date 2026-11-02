@@ -155,8 +155,20 @@ ipcMain.handle('obsidian:search-notes', async (event, vaultPath, query) => {
           await searchInDir(fullPath, relPath);
         } else if (entry.name.endsWith('.md')) {
           const content = await fs.readFile(fullPath, 'utf-8');
-          if (content.toLowerCase().includes(queryLower) || entry.name.toLowerCase().includes(queryLower)) {
-            results.push({ path: relPath.replace(/\\/g, '/'), name: entry.name.replace('.md', '') });
+          const contentLower = content.toLowerCase();
+          if (contentLower.includes(queryLower) || entry.name.toLowerCase().includes(queryLower)) {
+            const index = contentLower.indexOf(queryLower);
+            let context = '';
+            if (index !== -1) {
+              const start = Math.max(0, index - 50);
+              const end = Math.min(content.length, index + query.length + 50);
+              context = content.substring(start, end).replace(/\n/g, ' ');
+            }
+            results.push({
+              path: relPath.replace(/\\/g, '/'),
+              name: entry.name.replace('.md', ''),
+              context,
+            });
           }
         }
       }
@@ -165,6 +177,28 @@ ipcMain.handle('obsidian:search-notes', async (event, vaultPath, query) => {
     return { success: true, results, count: results.length };
   } catch (error) {
     return { success: false, error: error.message, results: [] };
+  }
+});
+
+ipcMain.handle('obsidian:read-note', async (event, vaultPath, notePath) => {
+  try {
+    const fullPath = path.join(vaultPath, notePath);
+    const content = await fs.readFile(fullPath, 'utf-8');
+    return { success: true, content };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('obsidian:write-note', async (event, vaultPath, notePath, content) => {
+  try {
+    const fullPath = path.join(vaultPath, notePath);
+    const dir = path.dirname(fullPath);
+    await fs.mkdir(dir, { recursive: true });
+    await fs.writeFile(fullPath, content, 'utf-8');
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
   }
 });
 
