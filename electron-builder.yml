@@ -12,4 +12,7 @@ files:
   - package.json
 
 win:
-  target: nsis
+  target:
+    - target: portable
+      arch:
+        - x64
