@@ -45,13 +45,33 @@ interface ObsidianSearchResult {
  * Check if Obsidian REST API is available
  */
 export async function checkObsidianConnection(): Promise<boolean> {
+  console.log('🔍 Checking Obsidian connection...');
+  console.log('📍 API Base:', OBSIDIAN_API_BASE);
+  console.log('🔑 API Key:', apiKey ? `${apiKey.substring(0, 10)}...` : 'NOT SET');
+  
   try {
+    const headers = getHeaders();
+    console.log('📤 Request headers:', headers);
+    
     const response = await fetch(`${OBSIDIAN_API_BASE}/vault`, {
       method: 'GET',
-      headers: getHeaders(),
+      headers,
     });
-    return response.ok;
-  } catch {
+    
+    console.log('📥 Response status:', response.status);
+    console.log('📥 Response OK:', response.ok);
+    
+    if (response.ok) {
+      const data = await response.json();
+      console.log('✅ Obsidian connection successful:', data);
+      return true;
+    } else {
+      const errorText = await response.text();
+      console.error('❌ Obsidian connection failed:', response.status, errorText);
+      return false;
+    }
+  } catch (error) {
+    console.error('❌ Obsidian connection error:', error);
     return false;
   }
 }

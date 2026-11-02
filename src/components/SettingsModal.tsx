@@ -11,6 +11,7 @@ const SettingsModal: React.FC = () => {
 
   const [vaultPath, setVaultPath] = useState(obsidianVaultPath);
   const [apiKey, setApiKey] = useState(obsidianApiKey);
+  const [showApiKey, setShowApiKey] = useState(false);
   const [obsidianConnected, setObsidianConnected] = useState<boolean | null>(null);
   const [noteCount, setNoteCount] = useState<number>(0);
   const [activeTab, setActiveTab] = useState<'general' | 'obsidian' | 'data'>('general');
@@ -137,7 +138,7 @@ const SettingsModal: React.FC = () => {
                 obsidianConnected === null ? 'bg-gray-50 border-gray-200' :
                 obsidianConnected ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
               }`}>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <span className="text-lg">
                       {obsidianConnected === null ? '⏳' : obsidianConnected ? '✅' : '❌'}
@@ -159,6 +160,27 @@ const SettingsModal: React.FC = () => {
                     🔄 Проверить
                   </button>
                 </div>
+                
+                {/* Diagnostic info */}
+                {!obsidianConnected && (
+                  <div className="mt-3 p-3 bg-white rounded border border-red-100">
+                    <p className="text-xs font-medium text-red-700 mb-2">🔍 Диагностика:</p>
+                    <ul className="text-xs text-red-600 space-y-1">
+                      <li>• API Key: {apiKey ? `✅ Установлен (${apiKey.substring(0, 10)}...)` : '❌ Не установлен'}</li>
+                      <li>• Порт: 27124</li>
+                      <li>• Протокол: HTTP (не HTTPS)</li>
+                    </ul>
+                    <div className="mt-2 pt-2 border-t border-red-100">
+                      <p className="text-xs text-red-700 font-medium mb-1">💡 Проверьте вручную:</p>
+                      <p className="text-xs text-red-600">
+                        Откройте в браузере: <code className="bg-red-100 px-1 rounded">http://127.0.0.1:27124/vault</code>
+                      </p>
+                      <p className="text-xs text-red-600 mt-1">
+                        Если видите JSON — API работает, проверьте API Key в настройках выше.
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* How to setup */}
@@ -237,13 +259,22 @@ const SettingsModal: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-600 mb-1">
                   🔑 API Key (из плагина Local REST API)
                 </label>
-                <input
-                  type="password"
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mb-2"
-                  placeholder="Вставьте API ключ из настроек плагина"
-                />
+                <div className="relative">
+                  <input
+                    type={showApiKey ? 'text' : 'password'}
+                    value={apiKey}
+                    onChange={(e) => setApiKey(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 pr-20 text-sm mb-2 font-mono"
+                    placeholder="Вставьте API ключ из настроек плагина"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowApiKey(!showApiKey)}
+                    className="absolute right-2 top-2 px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded"
+                  >
+                    {showApiKey ? '🙈 Скрыть' : '👁️ Показать'}
+                  </button>
+                </div>
                 <p className="text-xs text-gray-400 mt-1">
                   Скопируйте ключ из настроек плагина Local REST API в Obsidian
                 </p>
