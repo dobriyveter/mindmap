@@ -18,11 +18,14 @@ export function setObsidianApiKey(key: string) {
 }
 
 function getHeaders(): HeadersInit {
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     'Accept': 'application/json',
   };
   if (apiKey) {
+    // Local REST API plugin expects the key in Authorization header
     headers['Authorization'] = `Bearer ${apiKey}`;
+    // Also try alternative format
+    headers['apikey'] = apiKey;
   }
   return headers;
 }

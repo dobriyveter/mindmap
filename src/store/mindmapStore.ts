@@ -41,6 +41,7 @@ interface MindMapStore {
   saveToHistory: () => void;
   saveToLocal: () => void;
   loadFromLocal: () => void;
+  loadObsidianApiKey: () => void;
   setMapTitle: (title: string) => void;
   setTheme: (theme: 'light' | 'dark') => void;
   setObsidianVaultPath: (path: string) => void;
@@ -291,11 +292,22 @@ const useMindMapStore = create<MindMapStore>((set, get) => ({
     }
   },
 
+  loadObsidianApiKey: () => {
+    const apiKey = localStorage.getItem('mindflow_obsidian_api_key');
+    if (apiKey) {
+      set({ obsidianApiKey: apiKey });
+      // Устанавливаем API ключ в утилите obsidian
+      import('../utils/obsidian').then(mod => mod.setObsidianApiKey(apiKey));
+    }
+  },
+
   setMapTitle: (title: string) => set({ mapTitle: title, isDirty: true }),
   setTheme: (theme: 'light' | 'dark') => set({ theme }),
   setObsidianVaultPath: (path: string) => set({ obsidianVaultPath: path }),
   setObsidianApiKey: (key: string) => {
     set({ obsidianApiKey: key });
+    // Сохраняем API ключ в localStorage
+    localStorage.setItem('mindflow_obsidian_api_key', key);
     // Обновляем API ключ в утилите obsidian
     import('../utils/obsidian').then(mod => mod.setObsidianApiKey(key));
   },

@@ -166,6 +166,7 @@ const Canvas: React.FC = () => {
   // Load on mount
   useEffect(() => {
     useMindMapStore.getState().loadFromLocal();
+    useMindMapStore.getState().loadObsidianApiKey();
   }, []);
 
   const getVisibleNodes = () => {
