@@ -20,6 +20,7 @@ interface MindMapStore {
   mapTitle: string;
   theme: 'light' | 'dark';
   obsidianVaultPath: string;
+  obsidianApiKey: string;
   showTemplates: boolean;
   showSettings: boolean;
   connectingFrom: string | null;
@@ -43,6 +44,7 @@ interface MindMapStore {
   setMapTitle: (title: string) => void;
   setTheme: (theme: 'light' | 'dark') => void;
   setObsidianVaultPath: (path: string) => void;
+  setObsidianApiKey: (key: string) => void;
   setShowTemplates: (show: boolean) => void;
   setShowSettings: (show: boolean) => void;
   setConnectingFrom: (id: string | null) => void;
@@ -102,6 +104,7 @@ const useMindMapStore = create<MindMapStore>((set, get) => ({
   mapTitle: 'Без названия',
   theme: 'light',
   obsidianVaultPath: '',
+  obsidianApiKey: '',
   showTemplates: false,
   showSettings: false,
   connectingFrom: null,
@@ -291,6 +294,11 @@ const useMindMapStore = create<MindMapStore>((set, get) => ({
   setMapTitle: (title: string) => set({ mapTitle: title, isDirty: true }),
   setTheme: (theme: 'light' | 'dark') => set({ theme }),
   setObsidianVaultPath: (path: string) => set({ obsidianVaultPath: path }),
+  setObsidianApiKey: (key: string) => {
+    set({ obsidianApiKey: key });
+    // Обновляем API ключ в утилите obsidian
+    import('../utils/obsidian').then(mod => mod.setObsidianApiKey(key));
+  },
   setShowTemplates: (show: boolean) => set({ showTemplates: show }),
   setShowSettings: (show: boolean) => set({ showSettings: show }),
   setConnectingFrom: (id: string | null) => set({ connectingFrom: id }),

@@ -6,9 +6,11 @@ const SettingsModal: React.FC = () => {
   const {
     showSettings, setShowSettings, theme, setTheme,
     obsidianVaultPath, setObsidianVaultPath,
+    obsidianApiKey, setObsidianApiKey,
   } = useMindMapStore();
 
   const [vaultPath, setVaultPath] = useState(obsidianVaultPath);
+  const [apiKey, setApiKey] = useState(obsidianApiKey);
   const [obsidianConnected, setObsidianConnected] = useState<boolean | null>(null);
   const [noteCount, setNoteCount] = useState<number>(0);
   const [activeTab, setActiveTab] = useState<'general' | 'obsidian' | 'data'>('general');
@@ -33,6 +35,7 @@ const SettingsModal: React.FC = () => {
 
   const handleSaveObsidian = () => {
     setObsidianVaultPath(vaultPath);
+    setObsidianApiKey(apiKey);
   };
 
   return (
@@ -178,9 +181,14 @@ const SettingsModal: React.FC = () => {
                     <div>
                       <p className="font-medium text-sm text-blue-800">Настройте плагин</p>
                       <p className="text-xs text-blue-600 mt-0.5">
-                        В настройках плагина скопируйте API ключ и убедитесь что порт — 27124.
-                        Плагин должен быть активен (зелёный индикатор).
+                        В настройках плагина:
                       </p>
+                      <ul className="text-xs text-blue-600 mt-1 ml-3 list-disc">
+                        <li>Отключите <strong>"Enable HTTPS"</strong> (используем HTTP)</li>
+                        <li>Скопируйте <strong>API Key</strong></li>
+                        <li>Убедитесь что порт — <strong>27124</strong></li>
+                        <li>Плагин должен быть активен (зелёный индикатор)</li>
+                      </ul>
                     </div>
                   </div>
 
@@ -212,24 +220,39 @@ const SettingsModal: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-600 mb-1">
                   Путь к Obsidian Vault
                 </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={vaultPath}
-                    onChange={(e) => setVaultPath(e.target.value)}
-                    className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                    placeholder="C:\Users\Имя\Documents\MyVault"
-                  />
-                  <button
-                    onClick={handleSaveObsidian}
-                    className="px-4 py-2 bg-purple-500 text-white rounded-lg text-sm hover:bg-purple-600 whitespace-nowrap"
-                  >
-                    💾 Сохранить
-                  </button>
-                </div>
+                <input
+                  type="text"
+                  value={vaultPath}
+                  onChange={(e) => setVaultPath(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mb-3"
+                  placeholder="C:\Users\Имя\Documents\MyVault"
+                />
                 <p className="text-xs text-gray-400 mt-1">
                   Пример: C:\Users\Username\Documents\ObsidianVault
                 </p>
+              </div>
+
+              {/* API Key input */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  🔑 API Key (из плагина Local REST API)
+                </label>
+                <input
+                  type="password"
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mb-2"
+                  placeholder="Вставьте API ключ из настроек плагина"
+                />
+                <p className="text-xs text-gray-400 mt-1">
+                  Скопируйте ключ из настроек плагина Local REST API в Obsidian
+                </p>
+                <button
+                  onClick={handleSaveObsidian}
+                  className="mt-2 px-4 py-2 bg-purple-500 text-white rounded-lg text-sm hover:bg-purple-600"
+                >
+                  💾 Сохранить настройки
+                </button>
               </div>
 
               {/* Alternative: URI links */}

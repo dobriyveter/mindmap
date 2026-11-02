@@ -47,7 +47,7 @@ echo.
 echo   [5/5] Starting build...
 echo.
 echo ========================================================
-echo   Building... Please wait 5-15 minutes
+echo   Building... Please wait 2-5 minutes
 echo ========================================================
 echo.
 

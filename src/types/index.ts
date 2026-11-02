@@ -73,4 +73,5 @@ export interface MindMapState {
   mapTitle: string;
   theme: 'light' | 'dark';
   obsidianVaultPath: string;
+  obsidianApiKey: string;
 }

@@ -4,10 +4,28 @@
  * Requires the "Local REST API" plugin installed in Obsidian.
  * Plugin: https://github.com/coddingtonbear/obsidian-local-rest-api
  * 
- * Default endpoint: https://127.0.0.1:27124
+ * Default endpoint: http://127.0.0.1:27124
  */
 
-const OBSIDIAN_API_BASE = 'https://127.0.0.1:27124';
+// Используем HTTP вместо HTTPS чтобы избежать проблем с самоподписанным сертификатом
+const OBSIDIAN_API_BASE = 'http://127.0.0.1:27124';
+
+// API ключ будет устанавливаться из настроек
+let apiKey = '';
+
+export function setObsidianApiKey(key: string) {
+  apiKey = key;
+}
+
+function getHeaders(): HeadersInit {
+  const headers: HeadersInit = {
+    'Accept': 'application/json',
+  };
+  if (apiKey) {
+    headers['Authorization'] = `Bearer ${apiKey}`;
+  }
+  return headers;
+}
 
 interface ObsidianNote {
   path: string;
@@ -27,8 +45,7 @@ export async function checkObsidianConnection(): Promise<boolean> {
   try {
     const response = await fetch(`${OBSIDIAN_API_BASE}/vault`, {
       method: 'GET',
-      // Self-signed cert, so we need to handle this
-      headers: { 'Accept': 'application/json' },
+      headers: getHeaders(),
     });
     return response.ok;
   } catch {
@@ -45,7 +62,7 @@ export async function searchObsidianNotes(query: string): Promise<ObsidianSearch
       `${OBSIDIAN_API_BASE}/search?query=${encodeURIComponent(query)}`,
       {
         method: 'GET',
-        headers: { 'Accept': 'application/json' },
+        headers: getHeaders(),
       }
     );
     
@@ -67,11 +84,14 @@ export async function searchObsidianNotes(query: string): Promise<ObsidianSearch
  */
 export async function getObsidianNote(path: string): Promise<string | null> {
   try {
+    const headers = getHeaders();
+    (headers as Record<string, string>)['Accept'] = 'text/markdown';
+    
     const response = await fetch(
       `${OBSIDIAN_API_BASE}/vault/${encodeURIComponent(path)}`,
       {
         method: 'GET',
-        headers: { 'Accept': 'text/markdown' },
+        headers,
       }
     );
     
@@ -87,14 +107,14 @@ export async function getObsidianNote(path: string): Promise<string | null> {
  */
 export async function createObsidianNote(path: string, content: string): Promise<boolean> {
   try {
+    const headers = getHeaders();
+    (headers as Record<string, string>)['Content-Type'] = 'text/markdown';
+    
     const response = await fetch(
       `${OBSIDIAN_API_BASE}/vault/${encodeURIComponent(path)}`,
       {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'text/markdown',
-          'Accept': 'application/json',
-        },
+        headers,
         body: content,
       }
     );
@@ -113,7 +133,7 @@ export async function listObsidianNotes(): Promise<ObsidianNote[]> {
       `${OBSIDIAN_API_BASE}/vault/?recursively=true`,
       {
         method: 'GET',
-        headers: { 'Accept': 'application/json' },
+        headers: getHeaders(),
       }
     );
     
