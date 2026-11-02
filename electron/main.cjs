@@ -21,10 +21,9 @@ function createWindow() {
     height: 900,
     minWidth: 800,
     minHeight: 600,
-    title: 'MindFlow — Ментальные карты',
-    icon: path.join(__dirname, 'icon.png'),
+    title: 'MindFlow',
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, 'preload.cjs'),
       nodeIntegration: false,
       contextIsolation: true,
       webSecurity: true,
@@ -47,7 +46,7 @@ function createWindow() {
     mainWindow.webContents.openDevTools();
   } else {
     // В продакшене — загружаем собранные файлы
-    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+    mainWindow.loadFile(path.join(__dirname, '..', 'dist', 'index.html'));
   }
 
   // Внешние ссылки открываются в браузере
@@ -75,10 +74,10 @@ function createWindow() {
 function createMenu() {
   const template = [
     {
-      label: 'Файл',
+      label: 'File',
       submenu: [
         {
-          label: 'Новая карта',
+          label: 'New Map',
           accelerator: 'CmdOrCtrl+N',
           click: () => {
             mainWindow.webContents.send('menu-action', 'new');
@@ -86,21 +85,21 @@ function createMenu() {
         },
         { type: 'separator' },
         {
-          label: 'Сохранить',
+          label: 'Save',
           accelerator: 'CmdOrCtrl+S',
           click: () => {
             mainWindow.webContents.send('menu-action', 'save');
           }
         },
         {
-          label: 'Экспорт в JSON...',
+          label: 'Export to JSON...',
           accelerator: 'CmdOrCtrl+E',
           click: () => {
             mainWindow.webContents.send('menu-action', 'export');
           }
         },
         {
-          label: 'Импорт из JSON...',
+          label: 'Import from JSON...',
           accelerator: 'CmdOrCtrl+I',
           click: () => {
             mainWindow.webContents.send('menu-action', 'import');
@@ -108,67 +107,65 @@ function createMenu() {
         },
         { type: 'separator' },
         {
-          label: 'Выход',
+          label: 'Exit',
           accelerator: 'CmdOrCtrl+Q',
           click: () => app.quit()
         }
       ]
     },
     {
-      label: 'Вид',
+      label: 'View',
       submenu: [
         {
-          label: 'Обновить',
+          label: 'Reload',
           accelerator: 'CmdOrCtrl+R',
           click: () => mainWindow.webContents.reload()
         },
         {
-          label: 'Полный экран',
+          label: 'Full Screen',
           accelerator: 'F11',
           click: () => mainWindow.setFullScreen(!mainWindow.isFullScreen())
         },
         {
-          label: 'Инструменты разработчика',
+          label: 'Developer Tools',
           accelerator: 'F12',
           click: () => mainWindow.webContents.toggleDevTools()
         },
         { type: 'separator' },
-        { role: 'zoomIn', label: 'Увеличить' },
-        { role: 'zoomOut', label: 'Уменьшить' },
-        { role: 'resetZoom', label: 'Сбросить масштаб' }
+        { role: 'zoomIn', label: 'Zoom In' },
+        { role: 'zoomOut', label: 'Zoom Out' },
+        { role: 'resetZoom', label: 'Reset Zoom' }
       ]
     },
     {
-      label: 'Помощь',
+      label: 'Help',
       submenu: [
         {
-          label: 'О программе',
+          label: 'About',
           click: () => {
             dialog.showMessageBox(mainWindow, {
               type: 'info',
-              title: 'О программе MindFlow',
+              title: 'About MindFlow',
               message: 'MindFlow',
-              detail: `Версия: ${app.getVersion()}\n\nПриложение для создания ментальных карт.\n\nСоздано с помощью Electron + React + TypeScript`,
-              icon: path.join(__dirname, 'icon.png')
+              detail: `Version: ${app.getVersion()}\n\nMind mapping application.\n\nBuilt with Electron + React + TypeScript`,
             });
           }
         },
         {
-          label: 'Горячие клавиши',
+          label: 'Keyboard Shortcuts',
           click: () => {
             dialog.showMessageBox(mainWindow, {
               type: 'info',
-              title: 'Горячие клавиши',
-              detail: `Двойной клик — новый узел
-Tab — дочерний узел
-Enter — соседний узел
-Delete — удалить узел
-Ctrl+Z — отменить
-Ctrl+Y — повторить
-Ctrl+D — дублировать
-Ctrl+клик — выделить несколько
-Колёсико — масштаб`,
-              icon: path.join(__dirname, 'icon.png')
+              title: 'Keyboard Shortcuts',
+              detail: `Double click - new node
+Tab - child node
+Enter - sibling node
+Delete - remove node
+Ctrl+Z - undo
+Ctrl+Y - redo
+Ctrl+D - duplicate
+Ctrl+click - select multiple
+Mouse wheel - zoom`,
             });
           }
         }
@@ -180,7 +177,7 @@ Ctrl+клик — выделить несколько
   Menu.setApplicationMenu(menu);
 }
 
-// Регистрация протокола obsidian://
+// Registration of obsidian:// protocol
 if (process.defaultApp) {
   if (process.argv.length >= 2) {
     app.setAsDefaultProtocolClient('mindflow', process.execPath, [path.resolve(process.argv[1])]);
@@ -189,7 +186,7 @@ if (process.defaultApp) {
   app.setAsDefaultProtocolClient('mindflow');
 }
 
-// Обработка второго экземпляра приложения
+// Handle second instance of the app
 const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
   app.quit();
@@ -202,7 +199,7 @@ if (!gotTheLock) {
   });
 }
 
-// События приложения
+// App events
 app.whenReady().then(() => {
   createWindow();
   createMenu();
@@ -216,14 +213,14 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
 
-// IPC обработчики для диалогов
+// IPC handlers for dialogs
 ipcMain.handle('save-file-dialog', async (event, options) => {
   const result = await dialog.showSaveDialog(mainWindow, {
-    title: options.title || 'Сохранить файл',
+    title: options.title || 'Save file',
     defaultPath: options.defaultPath || 'mindmap.json',
     filters: options.filters || [
-      { name: 'JSON файлы', extensions: ['json'] },
-      { name: 'Все файлы', extensions: ['*'] }
+      { name: 'JSON files', extensions: ['json'] },
+      { name: 'All files', extensions: ['*'] }
     ]
   });
   return result;
@@ -231,10 +228,10 @@ ipcMain.handle('save-file-dialog', async (event, options) => {
 
 ipcMain.handle('open-file-dialog', async (event, options) => {
   const result = await dialog.showOpenDialog(mainWindow, {
-    title: options.title || 'Открыть файл',
+    title: options.title || 'Open file',
     filters: options.filters || [
-      { name: 'JSON файлы', extensions: ['json'] },
-      { name: 'Все файлы', extensions: ['*'] }
+      { name: 'JSON files', extensions: ['json'] },
+      { name: 'All files', extensions: ['*'] }
     ],
     properties: ['openFile']
   });

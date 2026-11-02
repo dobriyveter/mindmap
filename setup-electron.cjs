@@ -32,7 +32,7 @@ if (!packageJson.description) {
   packageJson.description = 'Mind mapping application';
 }
 if (!packageJson.main) {
-  packageJson.main = 'electron/main.js';
+  packageJson.main = 'electron/main.cjs';
 }
 if (!packageJson.author) {
   packageJson.author = 'MindFlow';
@@ -67,8 +67,8 @@ console.log('');
 console.log('[2/3] Checking files...');
 
 const requiredFiles = [
-  'electron/main.js',
-  'electron/preload.js',
+  'electron/main.cjs',
+  'electron/preload.cjs',
   'electron-builder.yml',
   'src/App.tsx',
   'index.html',

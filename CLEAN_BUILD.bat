@@ -31,6 +31,10 @@ if exist "build" (
     timeout /t 5 /nobreak >nul
     rmdir /s /q build >nul 2>&1
 )
+
+REM Delete old electron files
+if exist "electron\main.js" del /f /q "electron\main.js" >nul 2>&1
+if exist "electron\preload.js" del /f /q "electron\preload.js" >nul 2>&1
 echo   [OK] Done
 echo.
 
