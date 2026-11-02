@@ -27,6 +27,23 @@ export interface EisenhowerTask {
   done: boolean;
   createdAt: string;
   nodeId?: string; // привязка к узлу карты
+  dueDate?: string; // дата выполнения (ISO string)
+  dueTime?: string; // время выполнения (HH:MM)
+  reminder?: string; // напоминание (ISO datetime)
+  timeEstimate?: number; // оценка времени в минутах
+  recurring?: 'daily' | 'weekly' | 'monthly' | null; // повторение
+  priority?: number; // приоритет 1-10
+}
+
+export interface CalendarEvent {
+  id: string;
+  taskId: string;
+  date: string; // YYYY-MM-DD
+  time?: string; // HH:MM
+  duration?: number; // в минутах
+  title: string;
+  quadrant: EisenhowerQuadrant;
+  done: boolean;
 }
 
 export interface QuadrantConfig {

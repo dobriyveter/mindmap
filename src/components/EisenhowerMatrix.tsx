@@ -54,6 +54,9 @@ const EisenhowerMatrix: React.FC<Props> = ({ onClose }) => {
   const { nodes, eisenhowerTasks, addEisenhowerTask, updateEisenhowerTask, deleteEisenhowerTask, selectedNodeId } = useMindMapStore();
   const [newTaskText, setNewTaskText] = useState('');
   const [selectedQuadrant, setSelectedQuadrant] = useState<EisenhowerQuadrant>('A');
+  const [newTaskDate, setNewTaskDate] = useState('');
+  const [newTaskTime, setNewTaskTime] = useState('');
+  const [newTaskEstimate, setNewTaskEstimate] = useState('');
 
   const handleAddTask = () => {
     if (!newTaskText.trim()) return;
@@ -65,10 +68,16 @@ const EisenhowerMatrix: React.FC<Props> = ({ onClose }) => {
       done: false,
       createdAt: new Date().toISOString(),
       nodeId: selectedNodeId || undefined,
+      dueDate: newTaskDate || undefined,
+      dueTime: newTaskTime || undefined,
+      timeEstimate: newTaskEstimate ? parseInt(newTaskEstimate) : undefined,
     };
     
     addEisenhowerTask(task);
     setNewTaskText('');
+    setNewTaskDate('');
+    setNewTaskTime('');
+    setNewTaskEstimate('');
   };
 
   const handleToggleTask = (taskId: string) => {
@@ -112,7 +121,7 @@ const EisenhowerMatrix: React.FC<Props> = ({ onClose }) => {
 
         {/* Add task form */}
         <div className="p-4 border-b bg-gray-50">
-          <div className="flex gap-2">
+          <div className="flex gap-2 mb-2">
             <input
               type="text"
               value={newTaskText}
@@ -132,6 +141,30 @@ const EisenhowerMatrix: React.FC<Props> = ({ onClose }) => {
                 </option>
               ))}
             </select>
+          </div>
+          <div className="flex gap-2 mb-2">
+            <input
+              type="date"
+              value={newTaskDate}
+              onChange={(e) => setNewTaskDate(e.target.value)}
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+              placeholder="Дата"
+            />
+            <input
+              type="time"
+              value={newTaskTime}
+              onChange={(e) => setNewTaskTime(e.target.value)}
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+              placeholder="Время"
+            />
+            <input
+              type="number"
+              value={newTaskEstimate}
+              onChange={(e) => setNewTaskEstimate(e.target.value)}
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-32"
+              placeholder="Минут"
+              min="0"
+            />
             <button
               onClick={handleAddTask}
               className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600"
@@ -140,7 +173,7 @@ const EisenhowerMatrix: React.FC<Props> = ({ onClose }) => {
             </button>
           </div>
           {selectedNodeId && (
-            <p className="text-xs text-gray-500 mt-2">
+            <p className="text-xs text-gray-500">
               📌 Привязано к узлу: <strong>{getNodeName(selectedNodeId)}</strong>
             </p>
           )}
@@ -203,6 +236,13 @@ const EisenhowerMatrix: React.FC<Props> = ({ onClose }) => {
                               <p className={`text-sm ${task.done ? 'line-through text-gray-400' : 'text-gray-700'}`}>
                                 {task.text}
                               </p>
+                              <div className="flex gap-2 text-xs text-gray-500 mt-1">
+                                {task.dueDate && (
+                                  <span>📅 {new Date(task.dueDate).toLocaleDateString('ru-RU')}</span>
+                                )}
+                                {task.dueTime && <span>🕐 {task.dueTime}</span>}
+                                {task.timeEstimate && <span>⏱️ {task.timeEstimate} мин</span>}
+                              </div>
                               {task.nodeId && (
                                 <p className="text-xs text-gray-400 mt-1">
                                   📌 {getNodeName(task.nodeId)}

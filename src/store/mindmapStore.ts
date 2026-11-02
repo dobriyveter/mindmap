@@ -27,6 +27,7 @@ interface MindMapStore {
   connectingFrom: string | null;
   eisenhowerTasks: EisenhowerTask[];
   showEisenhowerMatrix: boolean;
+  showCalendar: boolean;
   currentProjectId: string | null;
   projects: Project[];
 
@@ -71,6 +72,9 @@ interface MindMapStore {
   addEisenhowerTask: (task: EisenhowerTask) => void;
   updateEisenhowerTask: (id: string, updates: Partial<EisenhowerTask>) => void;
   deleteEisenhowerTask: (id: string) => void;
+  getTasksByDate: (date: string) => EisenhowerTask[];
+  getUpcomingTasks: (days: number) => EisenhowerTask[];
+  getOverdueTasks: () => EisenhowerTask[];
   
   // Project management
   saveProject: () => void;
@@ -126,6 +130,7 @@ const useMindMapStore = create<MindMapStore>((set, get) => ({
   connectingFrom: null,
   eisenhowerTasks: [],
   showEisenhowerMatrix: false,
+  showCalendar: false,
   currentProjectId: null,
   projects: [],
 
@@ -518,6 +523,41 @@ const useMindMapStore = create<MindMapStore>((set, get) => ({
     set(state => ({
       eisenhowerTasks: state.eisenhowerTasks.filter(t => t.id !== id),
     }));
+  },
+
+  getTasksByDate: (date: string) => {
+    const state = get();
+    return state.eisenhowerTasks.filter(t => {
+      if (!t.dueDate) return false;
+      return t.dueDate === date;
+    });
+  },
+
+  getUpcomingTasks: (days: number) => {
+    const state = get();
+    const now = new Date();
+    const futureDate = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+    
+    return state.eisenhowerTasks.filter(t => {
+      if (!t.dueDate || t.done) return false;
+      const taskDate = new Date(t.dueDate);
+      return taskDate >= now && taskDate <= futureDate;
+    }).sort((a, b) => {
+      const dateA = new Date(a.dueDate!);
+      const dateB = new Date(b.dueDate!);
+      return dateA.getTime() - dateB.getTime();
+    });
+  },
+
+  getOverdueTasks: () => {
+    const state = get();
+    const now = new Date();
+    
+    return state.eisenhowerTasks.filter(t => {
+      if (!t.dueDate || t.done) return false;
+      const taskDate = new Date(t.dueDate);
+      return taskDate < now;
+    });
   },
 
   // Project management

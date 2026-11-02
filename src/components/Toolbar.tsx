@@ -175,6 +175,15 @@ const Toolbar: React.FC = () => {
         📊
       </button>
 
+      {/* Calendar */}
+      <button
+        onClick={() => useMindMapStore.setState({ showCalendar: true })}
+        className="p-2 rounded hover:bg-gray-100 text-gray-600"
+        title="Календарь задач"
+      >
+        📅
+      </button>
+
       {/* Templates */}
       <button
         onClick={() => store.setShowTemplates(true)}

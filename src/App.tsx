@@ -6,6 +6,7 @@ import Sidebar from './components/Sidebar';
 import TemplateModal from './components/TemplateModal';
 import SettingsModal from './components/SettingsModal';
 import EisenhowerMatrix from './components/EisenhowerMatrix';
+import Calendar from './components/Calendar';
 import ProjectList from './components/ProjectList';
 
 const App: React.FC = () => {
@@ -140,6 +141,9 @@ const App: React.FC = () => {
       <SettingsModal />
       {useMindMapStore.getState().showEisenhowerMatrix && (
         <EisenhowerMatrix onClose={() => useMindMapStore.setState({ showEisenhowerMatrix: false })} />
+      )}
+      {useMindMapStore.getState().showCalendar && (
+        <Calendar />
       )}
     </div>
   );
