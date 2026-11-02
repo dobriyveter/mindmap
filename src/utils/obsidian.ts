@@ -14,7 +14,12 @@ const OBSIDIAN_API_BASE = 'http://127.0.0.1:27124';
 let apiKey = '';
 
 export function setObsidianApiKey(key: string) {
-  apiKey = key;
+  apiKey = key.trim(); // Убираем пробелы в начале и конце
+  console.log('🔑 API Key set:', apiKey ? `${apiKey.substring(0, 10)}...` : 'EMPTY');
+}
+
+export function getObsidianApiKey(): string {
+  return apiKey;
 }
 
 function getHeaders(): HeadersInit {
@@ -24,6 +29,9 @@ function getHeaders(): HeadersInit {
   if (apiKey) {
     // Local REST API plugin expects the key in Authorization header
     headers['Authorization'] = `Bearer ${apiKey}`;
+    console.log('🔑 Using API key for authentication:', apiKey.substring(0, 10) + '...');
+  } else {
+    console.warn('⚠️ No API key set!');
   }
   return headers;
 }
@@ -57,28 +65,19 @@ export async function checkObsidianConnection(): Promise<boolean> {
   console.log('🔑 API Key:', apiKey ? `${apiKey.substring(0, 10)}...` : 'NOT SET');
   
   try {
-    // Try with Authorization header first
+    // Always send API key in both header and URL parameter
     const headers = getHeaders();
+    const urlWithKey = apiKey ? `${OBSIDIAN_API_BASE}/vault?apikey=${encodeURIComponent(apiKey)}` : `${OBSIDIAN_API_BASE}/vault`;
+    
+    console.log('📤 Request URL:', urlWithKey);
     console.log('📤 Request headers:', headers);
     
-    let response = await fetch(`${OBSIDIAN_API_BASE}/vault`, {
+    const response = await fetch(urlWithKey, {
       method: 'GET',
       headers,
     });
     
-    console.log('📥 Response status (with header):', response.status);
-    
-    // If unauthorized, try with query parameter
-    if (response.status === 401 && apiKey) {
-      console.log('🔄 Trying with API key in URL...');
-      const urlWithKey = addApiKeyToUrl(`${OBSIDIAN_API_BASE}/vault`);
-      response = await fetch(urlWithKey, {
-        method: 'GET',
-        headers: { 'Accept': 'application/json' },
-      });
-      console.log('📥 Response status (with URL param):', response.status);
-    }
-    
+    console.log('📥 Response status:', response.status);
     console.log('📥 Response OK:', response.ok);
     
     if (response.ok) {

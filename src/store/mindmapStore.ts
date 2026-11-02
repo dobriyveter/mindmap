@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
 import { MindMapNode, NodeConnection, ViewMode, ChecklistItem, ObsidianLink } from '../types';
+import { setObsidianApiKey as setObsidianApiKeyUtil } from '../utils/obsidian';
 
 interface MindMapStore {
   // State
@@ -294,10 +295,12 @@ const useMindMapStore = create<MindMapStore>((set, get) => ({
 
   loadObsidianApiKey: () => {
     const apiKey = localStorage.getItem('mindflow_obsidian_api_key');
+    console.log('📥 Loading API key from localStorage:', apiKey ? 'FOUND' : 'NOT FOUND');
     if (apiKey) {
       set({ obsidianApiKey: apiKey });
       // Устанавливаем API ключ в утилите obsidian
-      import('../utils/obsidian').then(mod => mod.setObsidianApiKey(apiKey));
+      setObsidianApiKeyUtil(apiKey);
+      console.log('✅ API key loaded and set');
     }
   },
 
@@ -305,11 +308,13 @@ const useMindMapStore = create<MindMapStore>((set, get) => ({
   setTheme: (theme: 'light' | 'dark') => set({ theme }),
   setObsidianVaultPath: (path: string) => set({ obsidianVaultPath: path }),
   setObsidianApiKey: (key: string) => {
+    console.log('🔑 Setting API key:', key ? `${key.substring(0, 10)}...` : 'EMPTY');
     set({ obsidianApiKey: key });
     // Сохраняем API ключ в localStorage
     localStorage.setItem('mindflow_obsidian_api_key', key);
     // Обновляем API ключ в утилите obsidian
-    import('../utils/obsidian').then(mod => mod.setObsidianApiKey(key));
+    setObsidianApiKeyUtil(key);
+    console.log('✅ API key saved and set');
   },
   setShowTemplates: (show: boolean) => set({ showTemplates: show }),
   setShowSettings: (show: boolean) => set({ showSettings: show }),
