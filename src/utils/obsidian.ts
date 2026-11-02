@@ -24,10 +24,17 @@ function getHeaders(): HeadersInit {
   if (apiKey) {
     // Local REST API plugin expects the key in Authorization header
     headers['Authorization'] = `Bearer ${apiKey}`;
-    // Also try alternative format
-    headers['apikey'] = apiKey;
   }
   return headers;
+}
+
+// Helper function to add API key as query parameter if needed
+function addApiKeyToUrl(url: string): string {
+  if (apiKey && !url.includes('apikey=')) {
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}apikey=${encodeURIComponent(apiKey)}`;
+  }
+  return url;
 }
 
 interface ObsidianNote {
@@ -50,15 +57,28 @@ export async function checkObsidianConnection(): Promise<boolean> {
   console.log('🔑 API Key:', apiKey ? `${apiKey.substring(0, 10)}...` : 'NOT SET');
   
   try {
+    // Try with Authorization header first
     const headers = getHeaders();
     console.log('📤 Request headers:', headers);
     
-    const response = await fetch(`${OBSIDIAN_API_BASE}/vault`, {
+    let response = await fetch(`${OBSIDIAN_API_BASE}/vault`, {
       method: 'GET',
       headers,
     });
     
-    console.log('📥 Response status:', response.status);
+    console.log('📥 Response status (with header):', response.status);
+    
+    // If unauthorized, try with query parameter
+    if (response.status === 401 && apiKey) {
+      console.log('🔄 Trying with API key in URL...');
+      const urlWithKey = addApiKeyToUrl(`${OBSIDIAN_API_BASE}/vault`);
+      response = await fetch(urlWithKey, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' },
+      });
+      console.log('📥 Response status (with URL param):', response.status);
+    }
+    
     console.log('📥 Response OK:', response.ok);
     
     if (response.ok) {
@@ -81,13 +101,13 @@ export async function checkObsidianConnection(): Promise<boolean> {
  */
 export async function searchObsidianNotes(query: string): Promise<ObsidianSearchResult[]> {
   try {
-    const response = await fetch(
-      `${OBSIDIAN_API_BASE}/search?query=${encodeURIComponent(query)}`,
-      {
-        method: 'GET',
-        headers: getHeaders(),
-      }
-    );
+    let url = `${OBSIDIAN_API_BASE}/search?query=${encodeURIComponent(query)}`;
+    url = addApiKeyToUrl(url);
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: getHeaders(),
+    });
     
     if (!response.ok) return [];
     
@@ -110,13 +130,13 @@ export async function getObsidianNote(path: string): Promise<string | null> {
     const headers = getHeaders();
     (headers as Record<string, string>)['Accept'] = 'text/markdown';
     
-    const response = await fetch(
-      `${OBSIDIAN_API_BASE}/vault/${encodeURIComponent(path)}`,
-      {
-        method: 'GET',
-        headers,
-      }
-    );
+    let url = `${OBSIDIAN_API_BASE}/vault/${encodeURIComponent(path)}`;
+    url = addApiKeyToUrl(url);
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers,
+    });
     
     if (!response.ok) return null;
     return await response.text();
@@ -133,14 +153,14 @@ export async function createObsidianNote(path: string, content: string): Promise
     const headers = getHeaders();
     (headers as Record<string, string>)['Content-Type'] = 'text/markdown';
     
-    const response = await fetch(
-      `${OBSIDIAN_API_BASE}/vault/${encodeURIComponent(path)}`,
-      {
-        method: 'PUT',
-        headers,
-        body: content,
-      }
-    );
+    let url = `${OBSIDIAN_API_BASE}/vault/${encodeURIComponent(path)}`;
+    url = addApiKeyToUrl(url);
+    
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers,
+      body: content,
+    });
     return response.ok;
   } catch {
     return false;
@@ -152,13 +172,13 @@ export async function createObsidianNote(path: string, content: string): Promise
  */
 export async function listObsidianNotes(): Promise<ObsidianNote[]> {
   try {
-    const response = await fetch(
-      `${OBSIDIAN_API_BASE}/vault/?recursively=true`,
-      {
-        method: 'GET',
-        headers: getHeaders(),
-      }
-    );
+    let url = `${OBSIDIAN_API_BASE}/vault/?recursively=true`;
+    url = addApiKeyToUrl(url);
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: getHeaders(),
+    });
     
     if (!response.ok) return [];
     
