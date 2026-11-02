@@ -1,5 +1,6 @@
 const { app, BrowserWindow, Menu, dialog, ipcMain, shell } = require('electron');
 const path = require('path');
+const fs = require('fs').promises;
 const isDev = !app.isPackaged;
 
 // Решаем проблему ICU data
@@ -243,4 +244,116 @@ ipcMain.handle('open-file-dialog', async (event, options) => {
     properties: ['openFile']
   });
   return result;
+});
+
+// Obsidian Vault - работа с файлами напрямую
+ipcMain.handle('obsidian:check-vault', async (event, vaultPath) => {
+  try {
+    const stats = await fs.stat(vaultPath);
+    return { exists: stats.isDirectory(), path: vaultPath };
+  } catch (error) {
+    return { exists: false, error: error.message };
+  }
+});
+
+ipcMain.handle('obsidian:list-notes', async (event, vaultPath) => {
+  try {
+    const notes = [];
+    
+    async function scanDir(dir, relativePath = '') {
+      const entries = await fs.readdir(dir, { withFileTypes: true });
+      
+      for (const entry of entries) {
+        const fullPath = path.join(dir, entry.name);
+        const relPath = path.join(relativePath, entry.name);
+        
+        if (entry.isDirectory()) {
+          // Пропускаем системные папки
+          if (entry.name === '.obsidian' || entry.name === '.trash') continue;
+          await scanDir(fullPath, relPath);
+        } else if (entry.name.endsWith('.md')) {
+          const stats = await fs.stat(fullPath);
+          notes.push({
+            path: relPath.replace(/\\/g, '/'),
+            name: entry.name.replace('.md', ''),
+            size: stats.size,
+            modified: stats.mtime.toISOString(),
+          });
+        }
+      }
+    }
+    
+    await scanDir(vaultPath);
+    return { success: true, notes, count: notes.length };
+  } catch (error) {
+    return { success: false, error: error.message, notes: [] };
+  }
+});
+
+ipcMain.handle('obsidian:read-note', async (event, vaultPath, notePath) => {
+  try {
+    const fullPath = path.join(vaultPath, notePath);
+    const content = await fs.readFile(fullPath, 'utf-8');
+    return { success: true, content };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('obsidian:search-notes', async (event, vaultPath, query) => {
+  try {
+    const results = [];
+    const queryLower = query.toLowerCase();
+    
+    async function searchInDir(dir, relativePath = '') {
+      const entries = await fs.readdir(dir, { withFileTypes: true });
+      
+      for (const entry of entries) {
+        const fullPath = path.join(dir, entry.name);
+        const relPath = path.join(relativePath, entry.name);
+        
+        if (entry.isDirectory()) {
+          if (entry.name === '.obsidian' || entry.name === '.trash') continue;
+          await searchInDir(fullPath, relPath);
+        } else if (entry.name.endsWith('.md')) {
+          const content = await fs.readFile(fullPath, 'utf-8');
+          const contentLower = content.toLowerCase();
+          
+          if (contentLower.includes(queryLower) || entry.name.toLowerCase().includes(queryLower)) {
+            // Извлекаем контекст вокруг совпадения
+            const index = contentLower.indexOf(queryLower);
+            let context = '';
+            if (index !== -1) {
+              const start = Math.max(0, index - 50);
+              const end = Math.min(content.length, index + query.length + 50);
+              context = content.substring(start, end).replace(/\n/g, ' ');
+            }
+            
+            results.push({
+              path: relPath.replace(/\\/g, '/'),
+              name: entry.name.replace('.md', ''),
+              context,
+            });
+          }
+        }
+      }
+    }
+    
+    await searchInDir(vaultPath);
+    return { success: true, results, count: results.length };
+  } catch (error) {
+    return { success: false, error: error.message, results: [] };
+  }
+});
+
+ipcMain.handle('obsidian:write-note', async (event, vaultPath, notePath, content) => {
+  try {
+    const fullPath = path.join(vaultPath, notePath);
+    const dir = path.dirname(fullPath);
+    await fs.mkdir(dir, { recursive: true });
+    await fs.writeFile(fullPath, content, 'utf-8');
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
 });

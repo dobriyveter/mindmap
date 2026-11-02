@@ -166,18 +166,43 @@ const SettingsModal: React.FC = () => {
                   <div className="mt-3 p-3 bg-white rounded border border-red-100">
                     <p className="text-xs font-medium text-red-700 mb-2">🔍 Диагностика:</p>
                     <ul className="text-xs text-red-600 space-y-1">
-                      <li>• API Key: {apiKey ? `✅ Установлен (${apiKey.substring(0, 10)}...)` : '❌ Не установлен'}</li>
-                      <li>• Порт: 27124</li>
-                      <li>• Протокол: HTTP (не HTTPS)</li>
+                      {typeof window !== 'undefined' && 'electronAPI' in window ? (
+                        <>
+                          <li>• Режим: <strong>Electron (десктоп)</strong></li>
+                          <li>• Путь к vault: {vaultPath ? `✅ ${vaultPath}` : '❌ Не указан'}</li>
+                          <li>• Метод: Прямое чтение файлов</li>
+                        </>
+                      ) : (
+                        <>
+                          <li>• Режим: <strong>Браузер</strong></li>
+                          <li>• API Key: {apiKey ? `✅ Установлен (${apiKey.substring(0, 10)}...)` : '❌ Не установлен'}</li>
+                          <li>• Порт: 27124</li>
+                          <li>• Протокол: HTTP (не HTTPS)</li>
+                        </>
+                      )}
                     </ul>
                     <div className="mt-2 pt-2 border-t border-red-100">
-                      <p className="text-xs text-red-700 font-medium mb-1">💡 Проверьте вручную:</p>
-                      <p className="text-xs text-red-600">
-                        Откройте в браузере: <code className="bg-red-100 px-1 rounded">http://127.0.0.1:27124/vault</code>
-                      </p>
-                      <p className="text-xs text-red-600 mt-1">
-                        Если видите JSON — API работает, проверьте API Key в настройках выше.
-                      </p>
+                      {typeof window !== 'undefined' && 'electronAPI' in window ? (
+                        <>
+                          <p className="text-xs text-red-700 font-medium mb-1">💡 Для десктопной версии:</p>
+                          <p className="text-xs text-red-600">
+                            Укажите путь к папке Obsidian vault ниже.
+                          </p>
+                          <p className="text-xs text-red-600 mt-1">
+                            Например: <code className="bg-red-100 px-1 rounded">C:\Users\Имя\Documents\MyVault</code>
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-xs text-red-700 font-medium mb-1">💡 Проверьте вручную:</p>
+                          <p className="text-xs text-red-600">
+                            Откройте в браузере: <code className="bg-red-100 px-1 rounded">http://127.0.0.1:27124/vault</code>
+                          </p>
+                          <p className="text-xs text-red-600 mt-1">
+                            Если видите JSON — API работает, проверьте API Key в настройках выше.
+                          </p>
+                        </>
+                      )}
                     </div>
                   </div>
                 )}
@@ -186,55 +211,98 @@ const SettingsModal: React.FC = () => {
               {/* How to setup */}
               <div className="mb-4">
                 <h3 className="font-semibold text-gray-700 mb-2">📋 Как настроить интеграцию:</h3>
-                <div className="space-y-3">
-                  <div className="flex gap-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
-                    <span className="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">1</span>
-                    <div>
-                      <p className="font-medium text-sm text-blue-800">Установите плагин в Obsidian</p>
-                      <p className="text-xs text-blue-600 mt-0.5">
-                        Откройте Obsidian → Настройки → Сторонние плагины → Обзор → 
-                        найдите <strong>"Local REST API"</strong> → Установить → Включить
-                      </p>
+                
+                {typeof window !== 'undefined' && 'electronAPI' in window ? (
+                  // Инструкции для Electron
+                  <div className="space-y-3">
+                    <div className="flex gap-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                      <span className="text-2xl">🎉</span>
+                      <div>
+                        <p className="font-medium text-sm text-green-800">Десктопная версия — плагин не нужен!</p>
+                        <p className="text-xs text-green-700 mt-1">
+                          MindFlow может читать заметки напрямую из файловой системы. 
+                          Просто укажите путь к папке Obsidian vault ниже.
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  
-                  <div className="flex gap-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
-                    <span className="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">2</span>
-                    <div>
-                      <p className="font-medium text-sm text-blue-800">Настройте плагин</p>
-                      <p className="text-xs text-blue-600 mt-0.5">
-                        В настройках плагина:
-                      </p>
-                      <ul className="text-xs text-blue-600 mt-1 ml-3 list-disc">
-                        <li>Отключите <strong>"Enable HTTPS"</strong> (используем HTTP)</li>
-                        <li>Скопируйте <strong>API Key</strong></li>
-                        <li>Убедитесь что порт — <strong>27124</strong></li>
-                        <li>Плагин должен быть активен (зелёный индикатор)</li>
-                      </ul>
+                    
+                    <div className="flex gap-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                      <span className="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">1</span>
+                      <div>
+                        <p className="font-medium text-sm text-blue-800">Найдите папку Obsidian vault</p>
+                        <p className="text-xs text-blue-600 mt-0.5">
+                          В Obsidian: нажмите на название хранилища в левом нижнем углу → 
+                          увидите путь к папке. Обычно это:
+                        </p>
+                        <ul className="text-xs text-blue-600 mt-1 ml-3 list-disc">
+                          <li><code className="bg-blue-100 px-1 rounded">C:\Users\Имя\Documents\MyVault</code></li>
+                          <li><code className="bg-blue-100 px-1 rounded">D:\Obsidian\MyVault</code></li>
+                        </ul>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="flex gap-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
-                    <span className="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">3</span>
-                    <div>
-                      <p className="font-medium text-sm text-blue-800">Укажите путь к хранилищу</p>
-                      <p className="text-xs text-blue-600 mt-0.5">
-                        Введите путь к папке вашего Obsidian vault ниже.
-                      </p>
+                    <div className="flex gap-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                      <span className="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">2</span>
+                      <div>
+                        <p className="font-medium text-sm text-blue-800">Введите путь ниже</p>
+                        <p className="text-xs text-blue-600 mt-0.5">
+                          Скопируйте путь к папке vault и вставьте в поле ниже.
+                        </p>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="flex gap-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
-                    <span className="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">4</span>
-                    <div>
-                      <p className="font-medium text-sm text-blue-800">Добавляйте ссылки в узлы</p>
-                      <p className="text-xs text-blue-600 mt-0.5">
-                        После настройки, в боковой панели узла добавляйте названия заметок.
-                        Клик по ссылке в узле откроет заметку прямо в Obsidian!
-                      </p>
+                    <div className="flex gap-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                      <span className="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">3</span>
+                      <div>
+                        <p className="font-medium text-sm text-blue-800">Готово!</p>
+                        <p className="text-xs text-blue-600 mt-0.5">
+                          Нажмите "💾 Сохранить настройки" и "🔄 Проверить". 
+                          MindFlow найдёт все ваши заметки!
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
+                ) : (
+                  // Инструкции для браузера
+                  <div className="space-y-3">
+                    <div className="flex gap-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                      <span className="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">1</span>
+                      <div>
+                        <p className="font-medium text-sm text-blue-800">Установите плагин в Obsidian</p>
+                        <p className="text-xs text-blue-600 mt-0.5">
+                          Откройте Obsidian → Настройки → Сторонние плагины → Обзор → 
+                          найдите <strong>"Local REST API"</strong> → Установить → Включить
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                      <span className="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">2</span>
+                      <div>
+                        <p className="font-medium text-sm text-blue-800">Настройте плагин</p>
+                        <p className="text-xs text-blue-600 mt-0.5">
+                          В настройках плагина:
+                        </p>
+                        <ul className="text-xs text-blue-600 mt-1 ml-3 list-disc">
+                          <li>Отключите <strong>"Enable HTTPS"</strong> (используем HTTP)</li>
+                          <li>Скопируйте <strong>API Key</strong></li>
+                          <li>Убедитесь что порт — <strong>27124</strong></li>
+                          <li>Плагин должен быть активен (зелёный индикатор)</li>
+                        </ul>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                      <span className="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">3</span>
+                      <div>
+                        <p className="font-medium text-sm text-blue-800">Вставьте API Key ниже</p>
+                        <p className="text-xs text-blue-600 mt-0.5">
+                          Скопируйте ключ из настроек плагина и вставьте в поле ниже.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Vault path input */}

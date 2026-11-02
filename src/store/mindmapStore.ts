@@ -295,18 +295,33 @@ const useMindMapStore = create<MindMapStore>((set, get) => ({
 
   loadObsidianApiKey: () => {
     const apiKey = localStorage.getItem('mindflow_obsidian_api_key');
-    console.log('📥 Loading API key from localStorage:', apiKey ? 'FOUND' : 'NOT FOUND');
+    const vaultPath = localStorage.getItem('mindflow_obsidian_vault_path');
+    console.log('📥 Loading Obsidian settings from localStorage...');
+    console.log('  API key:', apiKey ? 'FOUND' : 'NOT FOUND');
+    console.log('  Vault path:', vaultPath ? 'FOUND' : 'NOT FOUND');
+    
     if (apiKey) {
       set({ obsidianApiKey: apiKey });
-      // Устанавливаем API ключ в утилите obsidian
       setObsidianApiKeyUtil(apiKey);
       console.log('✅ API key loaded and set');
+    }
+    
+    if (vaultPath) {
+      set({ obsidianVaultPath: vaultPath });
+      import('../utils/obsidian').then(mod => mod.setObsidianVaultPath(vaultPath));
+      console.log('✅ Vault path loaded and set');
     }
   },
 
   setMapTitle: (title: string) => set({ mapTitle: title, isDirty: true }),
   setTheme: (theme: 'light' | 'dark') => set({ theme }),
-  setObsidianVaultPath: (path: string) => set({ obsidianVaultPath: path }),
+  setObsidianVaultPath: (path: string) => {
+    console.log('📁 Setting vault path:', path || 'EMPTY');
+    set({ obsidianVaultPath: path });
+    localStorage.setItem('mindflow_obsidian_vault_path', path);
+    import('../utils/obsidian').then(mod => mod.setObsidianVaultPath(path));
+    console.log('✅ Vault path saved and set');
+  },
   setObsidianApiKey: (key: string) => {
     console.log('🔑 Setting API key:', key ? `${key.substring(0, 10)}...` : 'EMPTY');
     set({ obsidianApiKey: key });
